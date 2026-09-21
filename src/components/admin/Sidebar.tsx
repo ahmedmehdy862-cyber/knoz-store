@@ -15,6 +15,7 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  X,
 } from "lucide-react";
 
 const navLinks = [
@@ -44,21 +45,47 @@ function Sidebar({ open, onClose }: SidebarProps) {
 
   return (
     <>
+      {/* Overlay - mobile only */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 right-0 z-50 h-full w-64 bg-brand-primary text-brand-secondary-light flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto",
-          open ? "translate-x-0" : "translate-x-full"
+          "fixed top-0 right-0 z-50 h-full w-72 bg-brand-primary text-brand-secondary-light flex flex-col transition-transform duration-300 ease-in-out",
+          "lg:static lg:z-auto lg:transition-none",
+          open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="p-5 border-b border-brand-primary-light/30">
+        {/* Close button - mobile only */}
+        <div className="p-4 border-b border-brand-primary-light/30 flex items-center justify-between lg:hidden">
           <Link href="/admin" className="flex items-center gap-2" onClick={onClose}>
+            <div className="w-9 h-9 rounded-lg bg-brand-accent flex items-center justify-center text-white font-bold text-lg font-heading">
+              K
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-white font-heading leading-tight">
+                Knoz Store
+              </h1>
+              <p className="text-xs text-brand-secondary/80">لوحة التحكم</p>
+            </div>
+          </Link>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-brand-primary-light/40 text-brand-secondary-light cursor-pointer"
+            aria-label="إغلاق القائمة"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Logo - desktop only */}
+        <div className="p-5 border-b border-brand-primary-light/30 hidden lg:block">
+          <Link href="/admin" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-brand-accent flex items-center justify-center text-white font-bold text-lg font-heading">
               K
             </div>
@@ -71,6 +98,7 @@ function Sidebar({ open, onClose }: SidebarProps) {
           </Link>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           <ul className="space-y-1">
             {navLinks.map((link) => {
@@ -97,6 +125,7 @@ function Sidebar({ open, onClose }: SidebarProps) {
           </ul>
         </nav>
 
+        {/* Logout */}
         <div className="p-3 border-t border-brand-primary-light/30">
           <form action="/api/auth/logout" method="post">
             <button

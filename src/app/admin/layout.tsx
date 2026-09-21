@@ -13,8 +13,10 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen flex bg-brand-background">
+      {/* Sidebar - always rendered, handles its own visibility */}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+      {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen lg:mr-0">
         <AdminHeader
           title="لوحة التحكم"
