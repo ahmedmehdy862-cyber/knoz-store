@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { BadgeStatus } from "@/components/ui/BadgeStatus";
 import { formatPrice, formatDateTime, type OrderStatus } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
 import {
   ShoppingCart,
   Package,
@@ -16,32 +16,19 @@ import {
 import Link from "next/link";
 
 async function getDashboardStats() {
-  const supabase = await createClient();
-
-  const [ordersResult, productsResult, customersResult] = await Promise.all([
-    supabase
-      .from("orders")
-      .select("id, status, total", { count: "exact" }),
-    supabase
-      .from("products")
-      .select("id, isActive", { count: "exact" }),
-    supabase
-      .from("customers")
-      .select("id", { count: "exact" }),
+  const [orders, products, customers] = await Promise.all([
+    prisma.order.findMany({ select: { id: true, status: true, total: true } }),
+    prisma.product.findMany({ select: { id: true, isActive: true } }),
+    prisma.customer.findMany({ select: { id: true } }),
   ]);
 
-  const orders = ordersResult.data || [];
-  const products = productsResult.data || [];
-
-  const totalOrders = ordersResult.count || 0;
+  const totalOrders = orders.length;
   const newOrders = orders.filter((o) => o.status === "new").length;
   const preparingOrders = orders.filter((o) => o.status === "preparing").length;
-  const completedOrders = orders.filter(
-    (o) => o.status === "delivered"
-  ).length;
-  const totalProducts = productsResult.count || 0;
+  const completedOrders = orders.filter((o) => o.status === "delivered").length;
+  const totalProducts = products.length;
   const inactiveProducts = products.filter((p) => !p.isActive).length;
-  const totalCustomers = customersResult.count || 0;
+  const totalCustomers = customers.length;
   const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
 
   return {
@@ -57,16 +44,11 @@ async function getDashboardStats() {
 }
 
 async function getRecentOrders() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, customer:customers(name, phone)")
-    .order("createdAt", { ascending: false })
-    .limit(5);
-
-  if (error) throw error;
-  return data || [];
+  return prisma.order.findMany({
+    include: { customer: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
 }
 
 export default async function AdminDashboardPage() {

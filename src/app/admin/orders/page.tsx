@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { BadgeStatus } from "@/components/ui/BadgeStatus";
 import { formatPrice, formatDateTime, ORDER_STATUSES, type OrderStatus } from "@/lib/utils";
 import Link from "next/link";
@@ -9,33 +10,38 @@ interface OrdersPageProps {
 }
 
 async function getOrders(status?: string, search?: string, page: number = 1) {
-  const supabase = await createClient();
   const limit = 10;
   const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  let query = supabase
-    .from("orders")
-    .select("*, customer:customers(name, phone)", { count: "exact" });
-
+  const where: Prisma.OrderWhereInput = {};
   if (status && status !== "all") {
-    query = query.eq("status", status);
+    where.status = status;
   }
 
   if (search) {
-    query = query.or(`orderNumber.ilike.%${search}%,phone.ilike.%${search}%`);
+    where.OR = [
+      { orderNumber: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
+    ];
   }
 
-  const { data, count, error } = await query
-    .order("createdAt", { ascending: false })
-    .range(from, to);
-
-  if (error) throw error;
+  const [orders, count] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        customer: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: from,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
 
   return {
-    orders: data || [],
-    total: count || 0,
-    totalPages: Math.ceil((count || 0) / limit),
+    orders,
+    total: count,
+    totalPages: Math.ceil(count / limit),
     page,
   };
 }

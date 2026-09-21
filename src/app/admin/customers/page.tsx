@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { Search } from "lucide-react";
 
@@ -7,49 +7,46 @@ interface CustomersPageProps {
 }
 
 async function getCustomers(search?: string, page: number = 1) {
-  const supabase = await createClient();
   const limit = 10;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+  const skip = (page - 1) * limit;
 
-  let query = supabase
-    .from("customers")
-    .select("*, user:users(email)", { count: "exact" });
+  const where = search
+    ? {
+        OR: [
+          { name: { contains: search, mode: "insensitive" as const } },
+          { phone: { contains: search, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
 
-  if (search) {
-    query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
-  }
-
-  const { data, count, error } = await query
-    .order("createdAt", { ascending: false })
-    .range(from, to);
-
-  if (error) throw error;
-
-  const customers = data || [];
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.customer.count({ where }),
+  ]);
 
   const customersWithStats = await Promise.all(
     customers.map(async (customer) => {
-      const { count: ordersCount } = await supabase
-        .from("orders")
-        .select("id", { count: "exact", head: true })
-        .eq("customerId", customer.id);
+      const [ordersCount, ordersAgg] = await Promise.all([
+        prisma.order.count({ where: { customerId: customer.id } }),
+        prisma.order.findMany({
+          where: { customerId: customer.id },
+          select: { total: true },
+        }),
+      ]);
 
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("total")
-        .eq("customerId", customer.id);
-
-      const totalSpent = (orders || []).reduce(
+      const totalSpent = ordersAgg.reduce(
         (sum, o) => sum + (Number(o.total) || 0),
         0
       );
 
-      const lastOrder = orders && orders.length > 0 ? orders[0] : null;
-
       return {
         ...customer,
-        orders_count: ordersCount || 0,
+        orders_count: ordersCount,
         total_spent: totalSpent,
       };
     })
@@ -57,8 +54,8 @@ async function getCustomers(search?: string, page: number = 1) {
 
   return {
     customers: customersWithStats,
-    total: count || 0,
-    totalPages: Math.ceil((count || 0) / limit),
+    total,
+    totalPages: Math.ceil(total / limit),
     page,
   };
 }
@@ -129,7 +126,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                       {customer.phone}
                     </td>
                     <td className="px-5 py-3 text-brand-text-secondary">
-                      {(customer.user as { email: string } | null)?.email || "—"}
+                      {customer.email || "—"}
                     </td>
                     <td className="px-5 py-3 text-brand-text">
                       {customer.orders_count}

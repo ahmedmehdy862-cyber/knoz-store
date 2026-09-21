@@ -1,16 +1,16 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { ThemesClient } from "./ThemesClient";
 
 async function getThemes() {
-  const supabase = await createClient();
+  const themes = await prisma.theme.findMany({
+    orderBy: { sortOrder: "asc" },
+  });
 
-  const { data, error } = await supabase
-    .from("themes")
-    .select("*")
-    .order("sortOrder", { ascending: true });
-
-  if (error) throw error;
-  return data || [];
+  return themes.map((t) => ({
+    ...t,
+    description: t.description ?? "",
+    previewUrl: t.previewUrl ?? "",
+  }));
 }
 
 export default async function ThemesPage() {

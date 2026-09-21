@@ -1,22 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { Plus } from "lucide-react";
 import { CategoriesClient } from "./CategoriesClient";
 
 async function getCategories() {
-  const supabase = await createClient();
+  const categories = await prisma.category.findMany({
+    orderBy: { sortOrder: "asc" },
+  });
 
-  const { data: categories, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("sortOrder", { ascending: true });
-
-  if (error) throw error;
-
-  const { count } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true });
-
-  return categories || [];
+  return categories.map((c) => ({
+    ...c,
+    description: c.description ?? "",
+    imageUrl: c.imageUrl ?? "",
+  }));
 }
 
 export default async function CategoriesPage() {

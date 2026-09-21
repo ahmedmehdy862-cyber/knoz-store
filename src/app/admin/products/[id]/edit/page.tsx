@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
 import Link from "next/link";
@@ -9,50 +9,38 @@ interface EditProductPageProps {
 }
 
 async function getProduct(id: string) {
-  const supabase = await createClient();
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      images: { select: { url: true, isPrimary: true } },
+      productThemes: { select: { themeId: true } },
+      productStickers: { select: { stickerId: true } },
+    },
+  });
 
-  const { data, error } = await supabase
-    .from("products")
-    .select(
-      "*, images:product_images(url, isPrimary), themes:product_themes(theme_id), stickers:product_stickers(sticker_id)"
-    )
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") return null;
-    throw error;
-  }
-
-  return data;
+  return product || null;
 }
 
 async function getFormData() {
-  const supabase = await createClient();
-
-  const [categoriesResult, themesResult, stickersResult] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id, name")
-      .eq("isActive", true)
-      .order("sortOrder"),
-    supabase
-      .from("themes")
-      .select("id, name")
-      .eq("isActive", true)
-      .order("sortOrder"),
-    supabase
-      .from("stickers")
-      .select("id, name")
-      .eq("isActive", true)
-      .order("sortOrder"),
+  const [categories, themes, stickers] = await Promise.all([
+    prisma.category.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+    prisma.theme.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+    prisma.sticker.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
   ]);
 
-  return {
-    categories: categoriesResult.data || [],
-    themes: themesResult.data || [],
-    stickers: stickersResult.data || [],
-  };
+  return { categories, themes, stickers };
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
@@ -63,8 +51,8 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
   const productImages = product.images as Array<{ url: string; isPrimary: boolean }> | null;
   const primaryImage = productImages?.find((img) => img.isPrimary)?.url || productImages?.[0]?.url || "";
-  const productThemes = product.themes as Array<{ theme_id: string }> | null;
-  const productStickers = product.stickers as Array<{ sticker_id: string }> | null;
+  const productThemes = product.productThemes as Array<{ themeId: string }> | null;
+  const productStickers = product.productStickers as Array<{ stickerId: string }> | null;
 
   const initialData = {
     id: product.id,
@@ -85,8 +73,8 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     allowsImageUpload: product.allowsImageUpload,
     allowsNotes: product.allowsNotes,
     imageUrl: primaryImage,
-    theme_ids: productThemes?.map((t) => t.theme_id) || [],
-    sticker_ids: productStickers?.map((s) => s.sticker_id) || [],
+    theme_ids: productThemes?.map((t) => t.themeId) || [],
+    sticker_ids: productStickers?.map((s) => s.stickerId) || [],
   };
 
   return (

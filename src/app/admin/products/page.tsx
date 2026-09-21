@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -9,31 +10,35 @@ interface ProductsPageProps {
 }
 
 async function getProducts(search?: string, page: number = 1) {
-  const supabase = await createClient();
   const limit = 10;
   const from = (page - 1) * limit;
-  const to = from + limit - 1;
 
-  let query = supabase
-    .from("products")
-    .select("*, category:categories(name), images:product_images(url, isPrimary)", {
-      count: "exact",
-    });
-
+  const where: Prisma.ProductWhereInput = {};
   if (search) {
-    query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%`);
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { sku: { contains: search, mode: "insensitive" } },
+    ];
   }
 
-  const { data, count, error } = await query
-    .order("createdAt", { ascending: false })
-    .range(from, to);
-
-  if (error) throw error;
+  const [products, count] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: {
+        category: { select: { name: true } },
+        images: { select: { url: true, isPrimary: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: from,
+      take: limit,
+    }),
+    prisma.product.count({ where }),
+  ]);
 
   return {
-    products: data || [],
-    total: count || 0,
-    totalPages: Math.ceil((count || 0) / limit),
+    products,
+    total: count,
+    totalPages: Math.ceil(count / limit),
     page,
   };
 }

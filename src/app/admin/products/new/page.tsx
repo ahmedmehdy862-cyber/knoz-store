@@ -1,32 +1,26 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { ProductForm } from "@/components/admin/ProductForm";
 
 async function getFormData() {
-  const supabase = await createClient();
-
-  const [categoriesResult, themesResult, stickersResult] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id, name")
-      .eq("isActive", true)
-      .order("sortOrder"),
-    supabase
-      .from("themes")
-      .select("id, name")
-      .eq("isActive", true)
-      .order("sortOrder"),
-    supabase
-      .from("stickers")
-      .select("id, name")
-      .eq("isActive", true)
-      .order("sortOrder"),
+  const [categories, themes, stickers] = await Promise.all([
+    prisma.category.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+    prisma.theme.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+    prisma.sticker.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { sortOrder: "asc" },
+    }),
   ]);
 
-  return {
-    categories: categoriesResult.data || [],
-    themes: themesResult.data || [],
-    stickers: stickersResult.data || [],
-  };
+  return { categories, themes, stickers };
 }
 
 export default async function NewProductPage() {

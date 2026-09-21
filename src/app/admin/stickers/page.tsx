@@ -1,16 +1,16 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { StickersClient } from "./StickersClient";
 
 async function getStickers() {
-  const supabase = await createClient();
+  const stickers = await prisma.sticker.findMany({
+    orderBy: { sortOrder: "asc" },
+  });
 
-  const { data, error } = await supabase
-    .from("stickers")
-    .select("*")
-    .order("sortOrder", { ascending: true });
-
-  if (error) throw error;
-  return data || [];
+  return stickers.map((s) => ({
+    ...s,
+    description: s.description ?? "",
+    previewUrl: s.previewUrl ?? "",
+  }));
 }
 
 export default async function StickersPage() {

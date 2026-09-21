@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { BadgeStatus } from "@/components/ui/BadgeStatus";
 import { formatPrice, formatDateTime, ORDER_STATUSES, type OrderStatus } from "@/lib/utils";
@@ -11,22 +11,19 @@ interface OrderDetailPageProps {
 }
 
 async function getOrder(id: string) {
-  const supabase = await createClient();
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      customer: true,
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
 
-  const { data, error } = await supabase
-    .from("orders")
-    .select(
-      "*, customer:customers(*, user:users(*)), items:order_items(*, product:products(*))"
-    )
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") return null;
-    throw error;
-  }
-
-  return data;
+  return order;
 }
 
 export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
@@ -73,7 +70,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               المنتجات
             </h2>
             <div className="space-y-4">
-              {order.items?.map((item: Record<string, unknown>) => {
+              {order.items?.map((item) => {
                 const orderItem = item as {
                   id: string;
                   productName: string;
@@ -83,7 +80,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                   customizationTheme: string | null;
                   customizationSticker: string | null;
                   customizationNotes: string | null;
-                  customization_imageUrl: string | null;
+                  customizationImageUrl: string | null;
                 };
                 return (
                   <div
@@ -102,7 +99,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                         orderItem.customizationTheme ||
                         orderItem.customizationSticker ||
                         orderItem.customizationNotes ||
-                        orderItem.customization_imageUrl) && (
+                        orderItem.customizationImageUrl) && (
                         <div className="mt-3 p-3 rounded-lg bg-brand-accent/5 border border-brand-accent/20">
                           <p className="text-xs font-bold text-brand-accent mb-2">
                             التخصيص
@@ -140,10 +137,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                                 </span>
                               </p>
                             )}
-                            {orderItem.customization_imageUrl && (
+                            {orderItem.customizationImageUrl && (
                               <div className="mt-2">
                                 <img
-                                  src={orderItem.customization_imageUrl}
+                                  src={orderItem.customizationImageUrl}
                                   alt="صورة التخصيص"
                                   className="w-20 h-20 object-cover rounded-lg border border-brand-border-light"
                                 />
