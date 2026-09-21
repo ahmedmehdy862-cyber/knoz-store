@@ -14,7 +14,6 @@ import {
   FileText,
   Settings,
   LogOut,
-  ChevronLeft,
   X,
 } from "lucide-react";
 
@@ -48,9 +47,20 @@ function Sidebar({ open, onClose }: SidebarProps) {
       {/* Overlay - mobile only */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={onClose}
         />
+      )}
+
+      {/* Close button - mobile only, OUTSIDE sidebar */}
+      {open && (
+        <button
+          onClick={onClose}
+          className="fixed top-4 left-4 z-[60] p-2 rounded-lg bg-brand-primary text-white hover:bg-brand-primary-dark cursor-pointer lg:hidden shadow-lg"
+          aria-label="إغلاق القائمة"
+        >
+          <X size={22} />
+        </button>
       )}
 
       {/* Sidebar */}
@@ -61,31 +71,9 @@ function Sidebar({ open, onClose }: SidebarProps) {
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Close button - mobile only */}
-        <div className="p-4 border-b border-brand-primary-light/30 flex items-center justify-between lg:hidden">
+        {/* Logo */}
+        <div className="p-5 border-b border-brand-primary-light/30">
           <Link href="/admin" className="flex items-center gap-2" onClick={onClose}>
-            <div className="w-9 h-9 rounded-lg bg-brand-accent flex items-center justify-center text-white font-bold text-lg font-heading">
-              K
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-white font-heading leading-tight">
-                Knoz Store
-              </h1>
-              <p className="text-xs text-brand-secondary/80">لوحة التحكم</p>
-            </div>
-          </Link>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-brand-primary-light/40 text-brand-secondary-light cursor-pointer"
-            aria-label="إغلاق القائمة"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Logo - desktop only */}
-        <div className="p-5 border-b border-brand-primary-light/30 hidden lg:block">
-          <Link href="/admin" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-brand-accent flex items-center justify-center text-white font-bold text-lg font-heading">
               K
             </div>
