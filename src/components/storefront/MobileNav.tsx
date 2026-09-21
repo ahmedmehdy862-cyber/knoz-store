@@ -60,7 +60,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-brand-border-light">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo/knoz-logo.jpeg"
+              src="/logo/knoz-logo.png"
               alt="Knoz Store - كنوز ستور"
               className="h-8 w-auto object-contain shrink-0"
             />

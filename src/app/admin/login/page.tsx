@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
-            src="/logo/knoz-logo.jpeg"
+            src="/logo/knoz-logo.png"
             alt="Knoz Store - كنوز ستور"
             className="w-20 h-20 object-contain mx-auto mb-4"
           />

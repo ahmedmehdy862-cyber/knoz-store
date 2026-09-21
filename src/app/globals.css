@@ -31,8 +31,8 @@
   --brand-info: #5A7F9F;
 
   /* Typography */
-  --font-heading: "Aref Ruqaa", "Cairo", serif;
-  --font-body: "Cairo", sans-serif;
+  --font-heading: var(--font-almarai);
+  --font-body: var(--font-tajawal);
 
   /* Spacing */
   --radius-sm: 6px;

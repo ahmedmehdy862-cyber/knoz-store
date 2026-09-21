@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import { Cairo, Aref_Ruqaa } from "next/font/google";
+import { Tajawal, Almarai } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/shared/Providers";
 
-const cairo = Cairo({
-  variable: "--font-cairo",
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
   subsets: ["arabic", "latin"],
+  weight: ["400", "500", "700", "800"],
   display: "swap",
 });
 
-const arefRuqaa = Aref_Ruqaa({
-  variable: "--font-aref-ruqaa",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "700"],
+const almarai = Almarai({
+  variable: "--font-almarai",
+  subsets: ["arabic"],
+  weight: ["400", "700", "800"],
   display: "swap",
 });
 
@@ -39,7 +40,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${cairo.variable} ${arefRuqaa.variable} h-full`}
+      className={`${tajawal.variable} ${almarai.variable} h-full`}
     >
       <body className="min-h-full flex flex-col antialiased">
         <Providers>{children}</Providers>

@@ -48,7 +48,7 @@ export function Header() {
             <div className="flex items-center gap-8">
               <Link href="/" className="shrink-0 flex items-center gap-2.5">
                 <img
-                  src="/logo/knoz-logo.jpeg"
+                  src="/logo/knoz-logo.png"
                   alt="Knoz Store - كنوز ستور"
                   className="h-10 w-auto object-contain shrink-0"
                 />
