@@ -4,37 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { SETTINGS_DEFAULTS as defaultSettings } from "@/lib/site-content";
+import { FONT_OPTIONS } from "@/lib/fonts";
 
 interface SettingsClientProps {
   initialData: Record<string, Record<string, unknown>>;
 }
-
-const defaultSettings: Record<string, Record<string, unknown>> = {
-  store: {
-    name: "Knoz Store",
-    name_ar: "كنوز ستور",
-    description: "منتجات مخصصة، مجات، استيكرز، ثيمات، هدايا بطابع شخصي",
-    phone: "",
-    email: "",
-    whatsapp: "",
-  },
-  delivery: {
-    free_delivery_threshold: 500,
-    default_deliveryFee: 50,
-    delivery_time: "2-5 أيام عمل",
-  },
-  currency: {
-    code: "EGP",
-    symbol: "جنيه",
-    name: "الجنيه المصري",
-  },
-  social: {
-    facebook: "",
-    instagram: "",
-    tiktok: "",
-    twitter: "",
-  },
-};
 
 function SettingsClient({ initialData }: SettingsClientProps) {
   const router = useRouter();
@@ -205,6 +180,71 @@ function SettingsClient({ initialData }: SettingsClientProps) {
         </div>
       </div>
 
+      <div className="bg-brand-surface rounded-xl border border-brand-border-light shadow-sm p-5">
+        <h3 className="font-bold text-brand-primary font-heading mb-1">
+          خطوط الموقع
+        </h3>
+        <p className="text-sm text-brand-text-secondary mb-4">
+          اختر الخط المستخدم في العناوين ونص الموقع
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-brand-text mb-1.5">
+              خط العناوين
+            </label>
+            <select
+              value={String(formData.fonts?.heading || "")}
+              onChange={(e) => handleChange("fonts", "heading", e.target.value)}
+              className="w-full rounded-lg border border-brand-border bg-white px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-accent"
+            >
+              {FONT_OPTIONS.map((font) => (
+                <option key={font.id} value={font.id}>
+                  {font.name}
+                </option>
+              ))}
+            </select>
+            <p
+              className="mt-2 text-lg font-bold text-brand-primary"
+              style={{
+                fontFamily: `'${getSelectedFont(
+                  String(formData.fonts?.heading || "")
+                ).family}', sans-serif`,
+              }}
+            >
+              عنوان تجريبي
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-brand-text mb-1.5">
+              خط النص
+            </label>
+            <select
+              value={String(formData.fonts?.body || "")}
+              onChange={(e) => handleChange("fonts", "body", e.target.value)}
+              className="w-full rounded-lg border border-brand-border bg-white px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-accent"
+            >
+              {FONT_OPTIONS.map((font) => (
+                <option key={font.id} value={font.id}>
+                  {font.name}
+                </option>
+              ))}
+            </select>
+            <p
+              className="mt-2 text-sm text-brand-text-secondary"
+              style={{
+                fontFamily: `'${getSelectedFont(
+                  String(formData.fonts?.body || "")
+                ).family}', sans-serif`,
+              }}
+            >
+              نص تجريبي للخط: كنوز ستور - منتجات مخصصة بطابع شخصي.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center gap-3">
         <Button onClick={handleSave} loading={loading}>
           حفظ جميع الإعدادات
@@ -217,6 +257,10 @@ function SettingsClient({ initialData }: SettingsClientProps) {
       </div>
     </div>
   );
+}
+
+function getSelectedFont(id: string) {
+  return FONT_OPTIONS.find((f) => f.id === id) || FONT_OPTIONS[0];
 }
 
 export { SettingsClient };

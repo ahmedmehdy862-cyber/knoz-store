@@ -1,21 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { ContentClient } from "./ContentClient";
+import { getSiteContent } from "@/services/site-content";
 
 async function getContent() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("site_content")
-    .select("*");
-
-  if (error) throw error;
-
-  const contentMap: Record<string, Record<string, unknown>> = {};
-  (data || []).forEach((item) => {
-    contentMap[item.key] = item.value;
-  });
-
-  return contentMap;
+  return getSiteContent();
 }
 
 export default async function ContentPage() {

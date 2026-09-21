@@ -7,6 +7,8 @@ import {
   getServerProducts,
   getServerFeaturedProducts,
 } from "@/services/server-products";
+import { CONTENT_DEFAULTS } from "@/lib/site-content";
+import { getSiteContent } from "@/services/site-content";
 import type { Category, Product } from "@/types";
 
 export default async function HomePage() {
@@ -14,6 +16,7 @@ export default async function HomePage() {
   let featuredProducts: Product[] = [];
   let latestProductsData: Product[] = [];
   let latestTotal = 0;
+  const content: Record<string, Record<string, unknown>> = {};
 
   try {
     [categories, featuredProducts] = await Promise.all([
@@ -35,6 +38,24 @@ export default async function HomePage() {
     // ignore
   }
 
+  try {
+    Object.assign(content, await getSiteContent());
+  } catch {
+    // fallback to defaults
+  }
+
+  const section = (key: string): Record<string, string> =>
+    ({ ...CONTENT_DEFAULTS[key], ...(content[key] || {}) }) as Record<
+      string,
+      string
+    >;
+
+  const categoriesHome = section("categories_home");
+  const featured = section("featured_products");
+  const promo = section("promo_section");
+  const latest = section("latest_products");
+  const why = section("why_us");
+
   return (
     <div>
       {/* Hero */}
@@ -45,10 +66,10 @@ export default async function HomePage() {
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-brand-primary font-heading">
-              تصفح التصنيفات
+              {categoriesHome.section_title}
             </h2>
             <p className="mt-2 text-brand-text-secondary">
-              اكتشف منتجاتنا حسب التصنيف
+              {categoriesHome.section_subtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,10 +86,10 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
               <h2 className="text-3xl font-bold text-brand-primary font-heading">
-                المنتجات المميزة
+                {featured.section_title}
               </h2>
               <p className="mt-2 text-brand-text-secondary">
-                أكتر المنتجات اللي بيحبها عملاؤنا
+                {featured.section_subtitle}
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -90,18 +111,17 @@ export default async function HomePage() {
           <div className="relative flex flex-col lg:flex-row items-center gap-10">
             <div className="flex-1 text-center lg:text-right">
               <h2 className="text-3xl sm:text-4xl font-bold font-heading leading-tight">
-                مش مجرد منتج... خليه بتفاصيلك.
+                {promo.title}
               </h2>
               <p className="mt-4 text-white/80 text-lg leading-relaxed max-w-lg mx-auto lg:mx-0">
-                عندنا تخصيص كامل للمنتجات. اكتب اسمك، اختار ثيم، حط استيكر،
-                أو ارفع صورتك. كل منتج يبقى فريد زيك.
+                {promo.description}
               </p>
               <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
                 <Link
-                  href="/shop?customizable=true"
+                  href={promo.cta_link}
                   className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-brand-primary font-medium hover:bg-brand-secondary-light transition-colors"
                 >
-                  شوف المنتجات القابلة للتخصيص
+                  {promo.cta_text}
                 </Link>
               </div>
             </div>
@@ -137,17 +157,17 @@ export default async function HomePage() {
           <div className="flex items-center justify-between mb-10">
             <div>
               <h2 className="text-3xl font-bold text-brand-primary font-heading">
-                أحدث المنتجات
+                {latest.section_title}
               </h2>
               <p className="mt-2 text-brand-text-secondary">
-                شوف أكتر المنتجات اللي اتضافت مؤخراً
+                {latest.section_subtitle}
               </p>
             </div>
             <Link
               href="/shop"
               className="text-sm font-medium text-brand-accent hover:text-brand-accent-dark transition-colors"
             >
-              عرض الكل
+              {latest.view_all_text}
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -163,10 +183,10 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold font-heading">
-              ليه كنوز ستور؟
+              {why.section_title}
             </h2>
             <p className="mt-2 text-white/70">
-              إحنا مش بس بنبيع منتجات، إحنا بنخلي كل منتج يحكي قصة
+              {why.section_subtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -177,8 +197,8 @@ export default async function HomePage() {
                   <path d="m15 5 4 4" />
                 </svg>
               }
-              title="تخصيص كامل"
-              description="صمّم منتجك بالتفاصيل اللي تحبها. اسمك، ثيمك، استيكرك، صورتك."
+              title={why.benefit_1_title}
+              description={why.benefit_1_desc}
             />
             <BenefitCard
               icon={
@@ -186,8 +206,8 @@ export default async function HomePage() {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
                 </svg>
               }
-              title="جودة مضمونة"
-              description="منتجات عالية الجودة، خامات ممتازة، وطباعة تتحمل الوقت."
+              title={why.benefit_2_title}
+              description={why.benefit_2_desc}
             />
             <BenefitCard
               icon={
@@ -197,8 +217,8 @@ export default async function HomePage() {
                   <path d="M9 21V9" />
                 </svg>
               }
-              title="توصيل لكل مصر"
-              description="نوصل لباب بيتك في أي محافظة في مصر. توصيل سريع وآمن."
+              title={why.benefit_3_title}
+              description={why.benefit_3_desc}
             />
             <BenefitCard
               icon={
@@ -206,8 +226,8 @@ export default async function HomePage() {
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               }
-              title="هدايا من القلب"
-              description="منتجات مميزة ليك أو لحد بتحبه. هدية تعبّر عن مشاعرك."
+              title={why.benefit_4_title}
+              description={why.benefit_4_desc}
             />
           </div>
         </div>

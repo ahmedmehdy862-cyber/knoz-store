@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { getSiteContent } from "@/services/site-content";
 
-export function Hero() {
+export async function Hero() {
+  const content = await getSiteContent();
+  const hero = (content.hero || {}) as Record<string, string>;
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-brand-surface via-brand-secondary/30 to-brand-accent/10">
       {/* Decorative elements */}
@@ -15,25 +19,27 @@ export function Hero() {
           {/* Text content */}
           <div className="flex-1 text-center lg:text-right">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-brand-primary font-heading leading-tight">
-              صمّم منتجك
+              {hero.title || "صمّم منتجك"}
               <br />
-              <span className="text-brand-accent">بتفاصيلك</span>
+              <span className="text-brand-accent">
+                {hero.title_accent || "بتفاصيلك"}
+              </span>
             </h1>
             <p className="mt-5 text-lg sm:text-xl text-brand-text-secondary max-w-lg mx-auto lg:mx-0 lg:mr-0 leading-relaxed">
-              مش مجرد منتج... خليه بيك.
+              {hero.subtitle || "مش مجرد منتج... خليه بيك."}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Link
-                href="/shop"
+                href={hero.cta_link || "/shop"}
                 className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl bg-brand-primary text-white font-medium text-base shadow-md hover:bg-brand-primary-light hover:shadow-lg active:bg-brand-primary-dark transition-all duration-200"
               >
-                تسوق الآن
+                {hero.cta_text || "تسوق الآن"}
               </Link>
               <Link
-                href="/categories"
+                href={hero.secondary_link || "/categories"}
                 className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl border-2 border-brand-primary text-brand-primary font-medium text-base bg-transparent hover:bg-brand-primary hover:text-white active:bg-brand-primary-dark transition-all duration-200"
               >
-                اكتشف منتجاتنا
+                {hero.secondary_text || "اكتشف منتجاتنا"}
               </Link>
             </div>
           </div>

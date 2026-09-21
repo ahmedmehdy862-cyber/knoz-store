@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import {
+  CONTENT_SECTIONS as defaultSections,
+} from "@/lib/site-content";
 
 interface ContentSection {
   key: string;
@@ -23,65 +26,6 @@ interface ContentClientProps {
   sections?: ContentSection[];
   initialData: Record<string, Record<string, unknown>>;
 }
-
-const defaultSections: ContentSection[] = [
-  {
-    key: "hero",
-    label: "البانر الرئيسي",
-    fields: [
-      { name: "title", label: "العنوان", type: "text", placeholder: "عنوان البانر" },
-      { name: "subtitle", label: "العنوان الفرعي", type: "text", placeholder: "عنوان فرعي" },
-      { name: "cta_text", label: "نص الزر", type: "text", placeholder: "تسوق الآن" },
-      { name: "cta_link", label: "رابط الزر", type: "text", placeholder: "/shop" },
-    ],
-  },
-  {
-    key: "featured_products",
-    label: "المنتجات المميزة",
-    fields: [
-      { name: "section_title", label: "عنوان القسم", type: "text", placeholder: "منتجات مميزة" },
-      { name: "section_subtitle", label: "العنوان الفرعي", type: "text", placeholder: "اكتشف منتجاتنا" },
-    ],
-  },
-  {
-    key: "promotional_banners",
-    label: "البانرات الترويجية",
-    fields: [
-      { name: "banner_1_title", label: "عنوان البانر 1", type: "text" },
-      { name: "banner_1_link", label: "رابط البانر 1", type: "text" },
-      { name: "banner_2_title", label: "عنوان البانر 2", type: "text" },
-      { name: "banner_2_link", label: "رابط البانر 2", type: "text" },
-    ],
-  },
-  {
-    key: "about",
-    label: "من نحن",
-    fields: [
-      { name: "title", label: "العنوان", type: "text", placeholder: "من نحن" },
-      { name: "description", label: "الوصف", type: "textarea", placeholder: "وصف المتجر" },
-    ],
-  },
-  {
-    key: "contact",
-    label: "معلومات التواصل",
-    fields: [
-      { name: "phone", label: "الهاتف", type: "text", placeholder: "+20 123 456 789" },
-      { name: "email", label: "البريد الإلكتروني", type: "text", placeholder: "info@knozstore.com" },
-      { name: "whatsapp", label: "واتساب", type: "text", placeholder: "+20 123 456 789" },
-      { name: "address", label: "العنوان", type: "textarea", placeholder: "عنوان المتجر" },
-    ],
-  },
-  {
-    key: "social_media",
-    label: "وسائل التواصل الاجتماعي",
-    fields: [
-      { name: "facebook", label: "فيسبوك", type: "text", placeholder: "رابط فيسبوك" },
-      { name: "instagram", label: "انستجرام", type: "text", placeholder: "رابط انستجرام" },
-      { name: "tiktok", label: "تيك توك", type: "text", placeholder: "رابط تيك توك" },
-      { name: "twitter", label: "تويتر/X", type: "text", placeholder: "رابط تويتر" },
-    ],
-  },
-];
 
 function ContentClient({ sections = defaultSections, initialData }: ContentClientProps) {
   const router = useRouter();

@@ -1,21 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { SettingsClient } from "./SettingsClient";
+import { getSiteSettings } from "@/services/site-content";
 
 async function getSettings() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("settings")
-    .select("*");
-
-  if (error) throw error;
-
-  const settingsMap: Record<string, Record<string, unknown>> = {};
-  (data || []).forEach((item) => {
-    settingsMap[item.key] = item.value;
-  });
-
-  return settingsMap;
+  return getSiteSettings();
 }
 
 export default async function SettingsPage() {

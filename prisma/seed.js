@@ -256,6 +256,118 @@ async function main() {
   }
   console.log("Product-Sticker associations seeded");
 
+  // 8. Settings
+  const settingData = {
+    store: {
+      name: "Knoz Store",
+      name_ar: "كنوز ستور",
+      description: "منتجات مخصصة، مجات، استيكرز، ثيمات، هدايا بطابع شخصي",
+      phone: "+20 1XX XXX XXXX",
+      email: "info@knozstore.com",
+      whatsapp: "+20 1XX XXX XXXX",
+    },
+    delivery: {
+      free_delivery_threshold: 500,
+      default_deliveryFee: 50,
+      delivery_time: "2-5 أيام عمل",
+    },
+    currency: {
+      code: "EGP",
+      symbol: "جنيه",
+      name: "الجنيه المصري",
+    },
+    social: {
+      facebook: "",
+      instagram: "",
+      tiktok: "",
+      twitter: "",
+    },
+    fonts: {
+      heading: "almarai",
+      body: "tajawal",
+    },
+  };
+
+  for (const [key, value] of Object.entries(settingData)) {
+    await prisma.setting.upsert({
+      where: { key },
+      update: { value: JSON.stringify(value) },
+      create: { key, value: JSON.stringify(value) },
+    });
+  }
+  console.log("Settings seeded:", Object.keys(settingData).length);
+
+  // 9. Site content
+  const siteContentData = {
+    hero: {
+      title: "صمّم منتجك",
+      title_accent: "بتفاصيلك",
+      subtitle: "مش مجرد منتج... خليه بيك.",
+      cta_text: "تسوق الآن",
+      cta_link: "/shop",
+      secondary_text: "اكتشف منتجاتنا",
+      secondary_link: "/categories",
+    },
+    categories_home: {
+      section_title: "تصفح التصنيفات",
+      section_subtitle: "اكتشف منتجاتنا حسب التصنيف",
+    },
+    featured_products: {
+      section_title: "المنتجات المميزة",
+      section_subtitle: "أكتر المنتجات اللي بيحبها عملاؤنا",
+    },
+    promo_section: {
+      title: "مش مجرد منتج... خليه بتفاصيلك.",
+      description:
+        "عندنا تخصيص كامل للمنتجات. اكتب اسمك، اختار ثيم، حط استيكر، أو ارفع صورتك. كل منتج يبقى فريد زيك.",
+      cta_text: "شوف المنتجات القابلة للتخصيص",
+      cta_link: "/shop?customizable=true",
+    },
+    latest_products: {
+      section_title: "أحدث المنتجات",
+      section_subtitle: "شوف أكتر المنتجات اللي اتضافت مؤخراً",
+      view_all_text: "عرض الكل",
+    },
+    why_us: {
+      section_title: "ليه كنوز ستور؟",
+      section_subtitle: "إحنا مش بس بنبيع منتجات، إحنا بنخلي كل منتج يحكي قصة",
+      benefit_1_title: "تخصيص كامل",
+      benefit_1_desc: "صمّم منتجك بالتفاصيل اللي تحبها. اسمك، ثيمك، استيكرك، صورتك.",
+      benefit_2_title: "جودة مضمونة",
+      benefit_2_desc: "منتجات عالية الجودة، خامات ممتازة، وطباعة تتحمل الوقت.",
+      benefit_3_title: "توصيل لكل مصر",
+      benefit_3_desc: "نوصل لباب بيتك في أي محافظة في مصر. توصيل سريع وآمن.",
+      benefit_4_title: "هدايا من القلب",
+      benefit_4_desc: "منتجات مميزة ليك أو لحد بتحبه. هدية تعبّر عن مشاعرك.",
+    },
+    about: {
+      title: "من نحن",
+      description:
+        "كنوز ستور - متجر متخصص في المنتجات المخصصة بطابع شخصي. صمّم منتجك بتفاصيلك: اكتب اسمك، اختار تصميمك، وخلّيه فريد زيك.",
+    },
+    contact: {
+      phone: "+20 1XX XXX XXXX",
+      email: "info@knozstore.com",
+      whatsapp: "+20 1XX XXX XXXX",
+      address: "القاهرة، مصر",
+    },
+    social_media: {
+      facebook: "",
+      instagram: "",
+      tiktok: "",
+      twitter: "",
+    },
+  };
+
+  for (const [key, value] of Object.entries(siteContentData)) {
+    await prisma.siteContent.upsert({
+      where: { key },
+      update: { value: JSON.stringify(value) },
+      create: { key, value: JSON.stringify(value) },
+    });
+  }
+  console.log("Site content seeded:", Object.keys(siteContentData).length);
+
   console.log("Seeding completed successfully!");
 }
 
