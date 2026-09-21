@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  role         String    @default("customer")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  cartItems    CartItem[]
+
+  @@map("users")
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  userId      String?  @map("user_id")
+  name        String
+  phone       String
+  email       String?
+  address     String?
+  governorate String?
+  area        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  orders      Order[]
+
+  @@map("customers")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?   @map("image_url")
+  isActive    Boolean   @default(true) @map("is_active")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                   String    @id @default(cuid())
+  name                 String
+  slug                 String    @unique
+  description          String?
+  price                Float
+  oldPrice             Float?    @map("old_price")
+  sku                  String?
+  categoryId           String?   @map("category_id")
+  isActive             Boolean   @default(true) @map("is_active")
+  isFeatured           Boolean   @default(false) @map("is_featured")
+  badge                String?
+  customizationEnabled Boolean   @default(false) @map("customization_enabled")
+  allowsName           Boolean   @default(false) @map("allows_name")
+  allowsTheme          Boolean   @default(false) @map("allows_theme")
+  allowsSticker        Boolean   @default(false) @map("allows_sticker")
+  allowsImageUpload    Boolean   @default(false) @map("allows_image_upload")
+  allowsNotes          Boolean   @default(false) @map("allows_notes")
+  stock                Int       @default(0)
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  category             Category? @relation(fields: [categoryId], references: [id])
+  images               ProductImage[]
+  productThemes        ProductTheme[]
+  productStickers      ProductSticker[]
+  orderItems           OrderItem[]
+  cartItems            CartItem[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  url       String
+  altText   String? @map("alt_text")
+  sortOrder Int     @default(0) @map("sort_order")
+  isPrimary Boolean @default(false) @map("is_primary")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Theme {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  previewUrl  String?  @map("preview_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  productThemes ProductTheme[]
+
+  @@map("themes")
+}
+
+model Sticker {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  previewUrl  String?  @map("preview_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  productStickers ProductSticker[]
+
+  @@map("stickers")
+}
+
+model ProductTheme {
+  productId String  @map("product_id")
+  themeId   String  @map("theme_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  theme     Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([productId, themeId])
+  @@map("product_themes")
+}
+
+model ProductSticker {
+  productId String  @map("product_id")
+  stickerId String  @map("sticker_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sticker   Sticker @relation(fields: [stickerId], references: [id], onDelete: Cascade)
+
+  @@id([productId, stickerId])
+  @@map("product_stickers")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique @map("order_number")
+  customerId   String?     @map("customer_id")
+  status       String      @default("new")
+  subtotal     Float
+  deliveryFee  Float       @default(0) @map("delivery_fee")
+  total        Float
+  phone        String
+  email        String?
+  governorate  String?
+  area         String?
+  address      String?
+  notes        String?
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  customer     Customer?   @relation(fields: [customerId], references: [id])
+  items        OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id                    String  @id @default(cuid())
+  orderId               String  @map("order_id")
+  productId             String? @map("product_id")
+  productName           String  @map("product_name")
+  productPrice          Float   @map("product_price")
+  quantity              Int     @default(1)
+  customizationName     String? @map("customization_name")
+  customizationTheme    String? @map("customization_theme")
+  customizationSticker  String? @map("customization_sticker")
+  customizationNotes    String? @map("customization_notes")
+  customizationImageUrl String? @map("customization_image_url")
+  order                 Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product               Product? @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model CartItem {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  productId    String   @map("product_id")
+  quantity     Int      @default(1)
+  customization String  @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @default("{}")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_content")
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @default("{}")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}

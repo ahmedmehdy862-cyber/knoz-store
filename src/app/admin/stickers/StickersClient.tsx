@@ -1,0 +1,199 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+
+interface Sticker {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  previewUrl: string;
+  isActive: boolean;
+}
+
+interface StickersClientProps {
+  stickers: Sticker[];
+}
+
+export function StickersClient({ stickers }: StickersClientProps) {
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<Sticker | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  const openCreate = () => {
+    setEditing(null);
+    setName("");
+    setDescription("");
+    setPreviewUrl("");
+    setShowModal(true);
+  };
+
+  const openEdit = (sticker: Sticker) => {
+    setEditing(sticker);
+    setName(sticker.name);
+    setDescription(sticker.description || "");
+    setPreviewUrl(sticker.previewUrl || "");
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name) return;
+
+    setLoading(true);
+    try {
+      const body = { name, description, previewUrl: previewUrl };
+      const url = editing
+        ? `/api/admin/stickers/${editing.id}`
+        : "/api/admin/stickers";
+      const method = editing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        setShowModal(false);
+        router.refresh();
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذا الاستيكر؟")) return;
+
+    const response = await fetch(`/api/admin/stickers/${id}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      router.refresh();
+    }
+  };
+
+  const toggleStatus = async (sticker: Sticker) => {
+    const response = await fetch(`/api/admin/stickers/${sticker.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !sticker.isActive }),
+    });
+
+    if (response.ok) {
+      router.refresh();
+    }
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {stickers.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-brand-text-muted">
+            لا توجد استيكرز
+          </div>
+        ) : (
+          stickers.map((sticker: any) => (
+            <div
+              key={sticker.id}
+              className="bg-brand-surface rounded-xl border border-brand-border-light shadow-sm overflow-hidden"
+            >
+              {sticker.previewUrl && (
+                <img
+                  src={sticker.previewUrl}
+                  alt={sticker.name}
+                  className="w-full h-40 object-cover"
+                />
+              )}
+              <div className="p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-bold text-brand-primary">{sticker.name}</h3>
+                    <p className="text-sm text-brand-text-secondary mt-0.5 line-clamp-2">
+                      {sticker.description || "بدون وصف"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => toggleStatus(sticker)}
+                    className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+                      sticker.isActive
+                        ? "bg-brand-success/10 text-brand-success"
+                        : "bg-brand-error/10 text-brand-error"
+                    }`}
+                  >
+                    {sticker.isActive ? <Check size={12} /> : <X size={12} />}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <button
+                    onClick={() => openEdit(sticker)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-secondary text-brand-text-secondary hover:bg-brand-secondary-dark transition-colors cursor-pointer"
+                  >
+                    <Pencil size={12} />
+                    تعديل
+                  </button>
+                  <button
+                    onClick={() => handleDelete(sticker.id)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-brand-error hover:bg-red-100 transition-colors cursor-pointer"
+                  >
+                    <Trash2 size={12} />
+                    حذف
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editing ? "تعديل الاستيكر" : "إضافة استيكر جديد"}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="اسم الاستيكر"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="اسم الاستيكر"
+            required
+          />
+          <Textarea
+            label="الوصف"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="وصف الاستيكر"
+          />
+          <ImageUpload value={previewUrl} onChange={setPreviewUrl} />
+          <div className="flex items-center gap-3 pt-2">
+            <Button type="submit" loading={loading}>
+              {editing ? "حفظ" : "إضافة"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowModal(false)}
+            >
+              إلغاء
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
+  );
+}

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://knozstore.com/sitemap.xml
