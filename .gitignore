@@ -55,3 +55,6 @@ private/
 # runtime logs
 *.log
 /bin/
+
+.vercel
+.env*
