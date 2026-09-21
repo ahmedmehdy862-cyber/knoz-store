@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/hooks/useCart";
 import { GOVERNORATES } from "@/lib/utils";
-import { createOrder } from "@/services/orders";
+
 
 interface FormData {
   name: string;
@@ -96,19 +96,29 @@ export function CheckoutForm() {
           customization_image_url: item.customization.imageUrl,
         }));
 
-        const order = await createOrder({
-          customer_name: form.name,
-          phone: form.phone,
-          email: form.email,
-          governorate: form.governorate,
-          area: form.area,
-          address: form.address,
-          notes: form.notes,
-          items: orderItems,
-          subtotal: total,
-          deliveryFee: deliveryFee,
-          total: total + deliveryFee,
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customer_name: form.name,
+            phone: form.phone,
+            email: form.email,
+            governorate: form.governorate,
+            area: form.area,
+            address: form.address,
+            notes: form.notes,
+            items: orderItems,
+            subtotal: total,
+            deliveryFee: deliveryFee,
+            total: total + deliveryFee,
+          }),
         });
+
+        if (!response.ok) {
+          throw new Error("Order creation failed");
+        }
+
+        const order = await response.json();
 
         clearCart();
         router.push(`/order-confirmation/${order.id}`);
