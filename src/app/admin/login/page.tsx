@@ -50,9 +50,11 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-brand-background px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-brand-primary mx-auto flex items-center justify-center text-white text-2xl font-bold font-heading mb-4">
-            K
-          </div>
+          <img
+            src="/logo/knoz-logo.jpeg"
+            alt="Knoz Store - كنوز ستور"
+            className="w-20 h-20 object-contain mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-brand-primary font-heading">
             Knoz Store
           </h1>

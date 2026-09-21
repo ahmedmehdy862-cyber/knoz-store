@@ -46,7 +46,12 @@ export function Header() {
           <div className="flex h-16 items-center justify-between gap-4">
             {/* Right: Logo + Nav (RTL) */}
             <div className="flex items-center gap-8">
-              <Link href="/" className="shrink-0">
+              <Link href="/" className="shrink-0 flex items-center gap-2.5">
+                <img
+                  src="/logo/knoz-logo.jpeg"
+                  alt="Knoz Store - كنوز ستور"
+                  className="h-10 w-auto object-contain shrink-0"
+                />
                 <span className="text-xl font-bold text-brand-primary font-heading">
                   Knoz Store
                 </span>

@@ -58,9 +58,16 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-brand-border-light">
-          <span className="text-lg font-bold text-brand-primary font-heading">
-            Knoz Store
-          </span>
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo/knoz-logo.jpeg"
+              alt="Knoz Store - كنوز ستور"
+              className="h-8 w-auto object-contain shrink-0"
+            />
+            <span className="text-lg font-bold text-brand-primary font-heading">
+              Knoz Store
+            </span>
+          </div>
           <button
             onClick={onClose}
             className="p-2 rounded-lg text-brand-text-muted hover:text-brand-primary hover:bg-brand-secondary/50 transition-colors cursor-pointer"
