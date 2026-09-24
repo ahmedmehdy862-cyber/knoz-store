@@ -9,6 +9,7 @@ import {
 } from "@/services/server-products";
 import { CONTENT_DEFAULTS } from "@/lib/site-content";
 import { getSiteContent } from "@/services/site-content";
+import { getActivePromotions } from "@/services/promotions";
 import type { Category, Product } from "@/types";
 
 export default async function HomePage() {
@@ -16,6 +17,7 @@ export default async function HomePage() {
   let featuredProducts: Product[] = [];
   let latestProductsData: Product[] = [];
   let latestTotal = 0;
+  let promotions: Awaited<ReturnType<typeof getActivePromotions>> = [];
   const content: Record<string, Record<string, unknown>> = {};
 
   try {
@@ -44,6 +46,12 @@ export default async function HomePage() {
     // fallback to defaults
   }
 
+  try {
+    promotions = await getActivePromotions();
+  } catch {
+    // no promotions
+  }
+
   const section = (key: string): Record<string, string> =>
     ({ ...CONTENT_DEFAULTS[key], ...(content[key] || {}) }) as Record<
       string,
@@ -60,6 +68,66 @@ export default async function HomePage() {
     <div>
       {/* Hero */}
       <Hero />
+
+      {/* Offers */}
+      {promotions.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-brand-primary font-heading">
+              عروضنا
+            </h2>
+            <p className="mt-2 text-brand-text-secondary">
+              أقوى الخصومات والعروض لفترة محدودة
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {promotions.map((promo) => (
+              <div
+                key={promo.id}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-primary via-brand-primary-light to-brand-accent text-white shadow-md"
+              >
+                <div className="flex flex-col sm:flex-row items-stretch">
+                  <div className="flex-1 p-6 sm:p-8">
+                    {promo.badge && (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white mb-3">
+                        {promo.badge}
+                      </span>
+                    )}
+                    <h3 className="text-2xl font-bold font-heading leading-snug">
+                      {promo.title}
+                    </h3>
+                    {promo.subtitle && (
+                      <p className="mt-1 text-white/80">{promo.subtitle}</p>
+                    )}
+                    {promo.description && (
+                      <p className="mt-2 text-sm text-white/70 leading-relaxed">
+                        {promo.description}
+                      </p>
+                    )}
+                    {promo.linkUrl && (
+                      <Link
+                        href={promo.linkUrl}
+                        className="mt-4 inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-white text-brand-primary text-sm font-medium hover:bg-brand-secondary-light transition-colors"
+                      >
+                        {promo.linkText || "تسوق الآن"}
+                      </Link>
+                    )}
+                  </div>
+                  {promo.imageUrl && (
+                    <div className="relative sm:w-48 shrink-0 min-h-40">
+                      <img
+                        src={promo.imageUrl}
+                        alt={promo.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Categories */}
       {categories.length > 0 && (
