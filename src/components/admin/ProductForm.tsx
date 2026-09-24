@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import {
+  getDiscountPercent,
+  oldPriceFromDiscount,
+} from "@/lib/discount";
 
 interface Category {
   id: string;
@@ -67,6 +71,11 @@ export function ProductForm({
   const [description, setDescription] = useState(initialData?.description || "");
   const [price, setPrice] = useState(initialData?.price?.toString() || "");
   const [oldPrice, setOldPrice] = useState(initialData?.oldPrice?.toString() || "");
+  const [discountPercent, setDiscountPercent] = useState(
+    initialData?.oldPrice && initialData?.price
+      ? String(getDiscountPercent(initialData.price, initialData.oldPrice) || "")
+      : ""
+  );
   const [sku, setSku] = useState(initialData?.sku || "");
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || "");
   const [stock, setStock] = useState(initialData?.stock?.toString() || "0");
@@ -213,11 +222,51 @@ export function ProductForm({
               label="السعر القديم"
               type="number"
               value={oldPrice}
-              onChange={(e) => setOldPrice(e.target.value)}
+              onChange={(e) => {
+                setOldPrice(e.target.value);
+                setDiscountPercent("");
+              }}
               placeholder="0.00"
               min="0"
               step="0.01"
             />
+          </div>
+
+          <div>
+            <Input
+              label="نسبة الخصم % (يملأ السعر القديم تلقائياً)"
+              type="number"
+              value={discountPercent}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDiscountPercent(v);
+                const p = parseFloat(price);
+                const d = parseFloat(v);
+                if (Number.isFinite(p) && p > 0 && Number.isFinite(d) && d > 0 && d < 100) {
+                  setOldPrice(String(oldPriceFromDiscount(p, d)));
+                } else if (!v) {
+                  setOldPrice("");
+                }
+              }}
+              placeholder="مثال: 20"
+              min="0"
+              max="99"
+            />
+            {(() => {
+              const pct = getDiscountPercent(
+                parseFloat(price) || 0,
+                parseFloat(oldPrice) || null
+              );
+              return pct > 0 ? (
+                <p className="mt-1.5 text-xs font-medium text-brand-success">
+                  خصم {pct}% — سيظهر السعر القديم مشطوباً بجانب السعر
+                </p>
+              ) : (
+                <p className="mt-1.5 text-xs text-brand-text-muted">
+                  اترك السعر القديم فارغاً لبيع المنتج بدون خصم
+                </p>
+              );
+            })()}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

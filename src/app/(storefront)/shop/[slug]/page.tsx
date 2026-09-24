@@ -9,6 +9,7 @@ import {
   getServerRelatedProducts,
 } from "@/services/server-products";
 import { formatPrice } from "@/lib/utils";
+import { getDiscountPercent } from "@/lib/discount";
 import { ProductBadge } from "@/components/ui/Badge";
 import type { Product } from "@/types";
 
@@ -77,16 +78,26 @@ export default async function ProductDetailsPage({
             </p>
           )}
 
-          <div className="mt-4 flex items-baseline gap-3">
+          <div className="mt-4 flex items-center gap-3 flex-wrap">
             <span className="text-3xl font-bold text-brand-primary">
               {formatPrice(product.price)}
             </span>
             {product.oldPrice && product.oldPrice > product.price && (
-              <span className="text-lg text-brand-text-muted line-through">
-                {formatPrice(product.oldPrice)}
-              </span>
+              <>
+                <span className="text-lg text-brand-text-muted line-through">
+                  {formatPrice(product.oldPrice)}
+                </span>
+                <span className="px-2.5 py-1 rounded-lg text-sm font-bold bg-brand-error text-white">
+                  خصم {getDiscountPercent(product.price, product.oldPrice)}%
+                </span>
+              </>
             )}
           </div>
+          {product.oldPrice && product.oldPrice > product.price && (
+            <p className="mt-1.5 text-sm font-medium text-brand-success">
+              وفّر {formatPrice(product.oldPrice - product.price)}
+            </p>
+          )}
 
           <div className="mt-4">
             {product.stock > 0 ? (

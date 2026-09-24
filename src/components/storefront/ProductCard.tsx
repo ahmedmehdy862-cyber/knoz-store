@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils";
+import { getDiscountPercent } from "@/lib/discount";
 import { ProductBadge } from "@/components/ui/Badge";
 import { useCart } from "@/hooks/useCart";
 import type { Product } from "@/types";
@@ -50,6 +51,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {product.badge && (
           <div className="absolute top-3 right-3">
             <ProductBadge badge={product.badge} />
+          </div>
+        )}
+
+        {/* Discount */}
+        {getDiscountPercent(product.price, product.oldPrice) > 0 && (
+          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-error text-white shadow-sm">
+            خصم {getDiscountPercent(product.price, product.oldPrice)}%
           </div>
         )}
       </Link>
