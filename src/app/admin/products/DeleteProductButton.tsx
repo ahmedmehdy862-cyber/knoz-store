@@ -23,7 +23,12 @@ export function DeleteProductButton({ productId }: DeleteProductButtonProps) {
 
       if (response.ok) {
         router.refresh();
+      } else {
+        const data = await response.json().catch(() => null);
+        alert(data?.error || "تعذر حذف المنتج");
       }
+    } catch {
+      alert("تعذر حذف المنتج");
     } finally {
       setLoading(false);
     }

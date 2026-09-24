@@ -29,6 +29,7 @@ export function CategoriesClient({ categories }: CategoriesPageProps) {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -39,6 +40,7 @@ export function CategoriesClient({ categories }: CategoriesPageProps) {
     setName("");
     setDescription("");
     setImageUrl("");
+    setSubmitError("");
     setShowModal(true);
   };
 
@@ -47,6 +49,7 @@ export function CategoriesClient({ categories }: CategoriesPageProps) {
     setName(cat.name);
     setDescription(cat.description || "");
     setImageUrl(cat.imageUrl || "");
+    setSubmitError("");
     setShowModal(true);
   };
 
@@ -55,6 +58,7 @@ export function CategoriesClient({ categories }: CategoriesPageProps) {
     if (!name) return;
 
     setLoading(true);
+    setSubmitError("");
     try {
       const body = { name, description, imageUrl: imageUrl };
       const url = editingCategory
@@ -71,7 +75,12 @@ export function CategoriesClient({ categories }: CategoriesPageProps) {
       if (response.ok) {
         setShowModal(false);
         router.refresh();
+      } else {
+        const data = await response.json().catch(() => null);
+        setSubmitError(data?.error || "حدث خطأ أثناء الحفظ");
       }
+    } catch {
+      setSubmitError("حدث خطأ أثناء الحفظ");
     } finally {
       setLoading(false);
     }
@@ -216,6 +225,9 @@ export function CategoriesClient({ categories }: CategoriesPageProps) {
         title={editingCategory ? "تعديل التصنيف" : "إضافة تصنيف جديد"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          {submitError && (
+            <p className="text-sm text-brand-error">{submitError}</p>
+          )}
           <Input
             label="اسم التصنيف"
             value={name}

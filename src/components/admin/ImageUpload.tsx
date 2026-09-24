@@ -19,12 +19,21 @@ function ImageUpload({
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
   const [preview, setPreview] = useState<string | null>(value || null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
     async (file: File) => {
-      if (!file.type.startsWith("image/")) return;
+      setError("");
+      if (!file.type.startsWith("image/")) {
+        setError("الملف يجب أن يكون صورة");
+        return;
+      }
+      if (file.size > 4 * 1024 * 1024) {
+        setError("حجم الصورة كبير. الحد الأقصى 4MB");
+        return;
+      }
 
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
@@ -45,9 +54,12 @@ function ImageUpload({
           setPreview(url);
           URL.revokeObjectURL(objectUrl);
         } else {
+          const data = await response.json().catch(() => null);
+          setError(data?.error || "فشل رفع الصورة. حاول مرة تانية");
           setPreview(value || null);
         }
       } catch {
+        setError("فشل رفع الصورة. حاول مرة تانية");
         setPreview(value || null);
       } finally {
         setUploading(false);
@@ -80,6 +92,7 @@ function ImageUpload({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (file) handleFile(file);
   };
 
@@ -99,6 +112,9 @@ function ImageUpload({
         className="hidden"
       />
 
+      {error && (
+        <p className="mb-2 text-sm text-brand-error">{error}</p>
+      )}
       {preview ? (
         <div className="relative group rounded-lg border border-brand-border-light overflow-hidden">
           <img
@@ -153,7 +169,7 @@ function ImageUpload({
                   اضغط أو اسحب الصورة هنا
                 </p>
                 <p className="text-xs text-brand-text-muted mt-1">
-                  PNG, JPG, WebP بحد أقصى 5MB
+                  PNG, JPG, WebP بحد أقصى 4MB
                 </p>
               </div>
               <div className="flex items-center gap-1 text-xs text-brand-accent font-medium">

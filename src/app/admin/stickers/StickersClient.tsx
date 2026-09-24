@@ -27,6 +27,7 @@ export function StickersClient({ stickers }: StickersClientProps) {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Sticker | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -37,6 +38,7 @@ export function StickersClient({ stickers }: StickersClientProps) {
     setName("");
     setDescription("");
     setPreviewUrl("");
+    setSubmitError("");
     setShowModal(true);
   };
 
@@ -45,6 +47,7 @@ export function StickersClient({ stickers }: StickersClientProps) {
     setName(sticker.name);
     setDescription(sticker.description || "");
     setPreviewUrl(sticker.previewUrl || "");
+    setSubmitError("");
     setShowModal(true);
   };
 
@@ -53,6 +56,7 @@ export function StickersClient({ stickers }: StickersClientProps) {
     if (!name) return;
 
     setLoading(true);
+    setSubmitError("");
     try {
       const body = { name, description, previewUrl: previewUrl };
       const url = editing
@@ -69,7 +73,12 @@ export function StickersClient({ stickers }: StickersClientProps) {
       if (response.ok) {
         setShowModal(false);
         router.refresh();
+      } else {
+        const data = await response.json().catch(() => null);
+        setSubmitError(data?.error || "حدث خطأ أثناء الحفظ");
       }
+    } catch {
+      setSubmitError("حدث خطأ أثناء الحفظ");
     } finally {
       setLoading(false);
     }
@@ -166,6 +175,9 @@ export function StickersClient({ stickers }: StickersClientProps) {
         title={editing ? "تعديل الاستيكر" : "إضافة استيكر جديد"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          {submitError && (
+            <p className="text-sm text-brand-error">{submitError}</p>
+          )}
           <Input
             label="اسم الاستيكر"
             value={name}
