@@ -15,7 +15,7 @@ function ImageUpload({
   value,
   onChange,
   className,
-  accept = "image/*",
+  accept = "image/png,image/jpeg,image/webp,image/gif",
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);

@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { loginUser, generateToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
+
+    const { allowed, retryAfter } = checkRateLimit(
+      `login:${getClientIp(request)}`,
+      8,
+      10 * 60 * 1000
+    );
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "محاولات كثيرة. حاول بعد دقيقة" },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } }
+      );
+    }
 
     if (!email || !password) {
       return NextResponse.json(
