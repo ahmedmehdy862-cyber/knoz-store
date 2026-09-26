@@ -8,7 +8,7 @@ function bad(message: string) {
 
 export async function POST(request: Request) {
   try {
-    const { allowed, retryAfter } = checkRateLimit(
+    const { allowed, retryAfter } = await checkRateLimit(
       `order:${getClientIp(request)}`,
       10,
       10 * 60 * 1000

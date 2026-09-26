@@ -1,18 +1,4 @@
-interface Bucket {
-  count: number;
-  resetAt: number;
-}
-
-const buckets = new Map<string, Bucket>();
-
-function cleanup() {
-  const now = Date.now();
-  if (buckets.size > 5000) {
-    for (const [key, bucket] of buckets) {
-      if (bucket.resetAt <= now) buckets.delete(key);
-    }
-  }
-}
+import { prisma } from "@/lib/prisma";
 
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -20,27 +6,37 @@ export function getClientIp(request: Request): string {
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-export function checkRateLimit(
+export async function checkRateLimit(
   key: string,
   limit: number,
   windowMs: number
-): { allowed: boolean; retryAfter: number } {
-  cleanup();
-  const now = Date.now();
-  const bucket = buckets.get(key);
+): Promise<{ allowed: boolean; retryAfter: number }> {
+  const now = new Date();
+
+  const bucket = await prisma.rateLimit.findUnique({ where: { key } });
 
   if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
+    await prisma.$transaction([
+      prisma.rateLimit.deleteMany({ where: { resetAt: { lte: now } } }),
+      prisma.rateLimit.upsert({
+        where: { key },
+        update: { count: 1, resetAt: new Date(Date.now() + windowMs) },
+        create: { key, count: 1, resetAt: new Date(Date.now() + windowMs) },
+      }),
+    ]);
     return { allowed: true, retryAfter: 0 };
   }
 
   if (bucket.count >= limit) {
     return {
       allowed: false,
-      retryAfter: Math.ceil((bucket.resetAt - now) / 1000),
+      retryAfter: Math.max(1, Math.ceil((bucket.resetAt.getTime() - now.getTime()) / 1000)),
     };
   }
 
-  bucket.count += 1;
+  await prisma.rateLimit.update({
+    where: { key },
+    data: { count: { increment: 1 } },
+  });
   return { allowed: true, retryAfter: 0 };
 }

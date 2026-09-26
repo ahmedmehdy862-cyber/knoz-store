@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   try {
     await requireAdmin();
 
-    const { allowed, retryAfter } = checkRateLimit(
+    const { allowed, retryAfter } = await checkRateLimit(
       `upload:${getClientIp(request)}`,
       30,
       10 * 60 * 1000

@@ -227,3 +227,12 @@ model Promotion {
 
   @@map("promotions")
 }
+
+model RateLimit {
+  key       String   @id
+  count     Int      @default(1)
+  resetAt   DateTime @map("reset_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("rate_limits")
+}

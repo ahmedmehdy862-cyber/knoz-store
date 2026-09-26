@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
 
-    const { allowed, retryAfter } = checkRateLimit(
+    const { allowed, retryAfter } = await checkRateLimit(
       `login:${getClientIp(request)}`,
       8,
       10 * 60 * 1000
