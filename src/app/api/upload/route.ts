@@ -11,22 +11,22 @@ const ALLOWED_TYPES = new Set([
   "image/gif",
 ]);
 
-function hasImageMagic(bytes: Uint8Array): boolean {
+function detectImageType(bytes: Uint8Array): string | null {
   // PNG: 89 50 4E 47
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
-    return true;
+    return "image/png";
   // JPEG: FF D8 FF
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return true;
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
   // GIF: 47 49 46 38 ("GIF8")
   if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38)
-    return true;
+    return "image/gif";
   // WebP: "RIFF"...."WEBP"
   if (
     bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
     bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
   )
-    return true;
-  return false;
+    return "image/webp";
+  return null;
 }
 
 export async function POST(request: Request) {
@@ -67,14 +67,16 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    if (!hasImageMagic(buffer)) {
+    const detectedType = detectImageType(buffer);
+    const declaredType = file.type === "image/jpg" ? "image/jpeg" : file.type;
+    if (!detectedType || detectedType !== declaredType) {
       return NextResponse.json(
         { error: "محتوى الملف ليس صورة حقيقية" },
         { status: 400 }
       );
     }
 
-    const url = `data:${file.type};base64,${buffer.toString("base64")}`;
+    const url = `data:${detectedType};base64,${buffer.toString("base64")}`;
 
     return NextResponse.json({ url }, { status: 201 });
   } catch (error) {

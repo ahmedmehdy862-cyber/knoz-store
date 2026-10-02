@@ -16,7 +16,16 @@ export default async function ContactPage() {
     ...((content.contact || {}) as Record<string, string>),
   } as Record<string, string>;
   const store = (settings.store || {}) as Record<string, unknown>;
-  const social = { ...((content.social_media || {}) as Record<string, string>) };
+  const storeSocial = (settings.social || {}) as Record<string, unknown>;
+  const contentSocial = (content.social_media || {}) as Record<string, string>;
+  const social: Record<string, string> = {};
+  for (const key of ["facebook", "instagram", "tiktok", "twitter"]) {
+    const value =
+      (typeof storeSocial[key] === "string" && (storeSocial[key] as string)) ||
+      contentSocial[key] ||
+      "";
+    if (value) social[key] = value;
+  }
 
   const phone =
     (typeof store.phone === "string" && store.phone) || contact.phone || "";
