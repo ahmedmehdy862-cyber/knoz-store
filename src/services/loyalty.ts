@@ -33,10 +33,24 @@ export function resolveLoyaltyDiscount(tiers: LoyaltyTier[], totalSpent: number)
   return percent;
 }
 
+export async function findCustomerByPhone(phone: string) {
+  const digits = phone.replace(/[^0-9]/g, "");
+  const exact = await prisma.customer.findFirst({ where: { phone } });
+  if (exact) return exact;
+  if (digits.length < 7) return null;
+  const tail = digits.slice(-9);
+  const candidates = await prisma.customer.findMany({
+    where: { phone: { contains: tail } },
+  });
+  return (
+    candidates.find((c) => c.phone.replace(/[^0-9]/g, "") === digits) || null
+  );
+}
+
 export async function getCustomerLoyalty(
   phone: string
 ): Promise<{ totalSpent: number; percent: number }> {
-  const customer = await prisma.customer.findFirst({ where: { phone } });
+  const customer = await findCustomerByPhone(phone);
   if (!customer) return { totalSpent: 0, percent: 0 };
   const agg = await prisma.order.aggregate({
     where: { customerId: customer.id, status: { not: "cancelled" } },

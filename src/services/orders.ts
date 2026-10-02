@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { getLoyaltyTiers, resolveLoyaltyDiscount } from "@/services/loyalty";
+import {
+  getLoyaltyTiers,
+  resolveLoyaltyDiscount,
+  findCustomerByPhone,
+} from "@/services/loyalty";
 
 function bad(message: string): Error {
   return Object.assign(new Error(message), { status: 400 });
@@ -73,7 +77,7 @@ export async function createOrder(data: any) {
   const { threshold, fee } = await getDeliverySettings();
 
   const phone: string = data.phone;
-  let customer = await prisma.customer.findFirst({ where: { phone } });
+  let customer = await findCustomerByPhone(phone);
   if (customer) {
     customer = await prisma.customer.update({
       where: { id: customer.id },
