@@ -357,7 +357,7 @@ export const CONTENT_DEFAULTS: Record<string, Record<string, string>> = {
   },
 };
 
-export const SETTINGS_DEFAULTS: Record<string, Record<string, string | number>> = {
+export const SETTINGS_DEFAULTS: Record<string, Record<string, unknown>> = {
   store: {
     name: "Knoz Store",
     name_ar: "كنوز ستور",
@@ -385,5 +385,12 @@ export const SETTINGS_DEFAULTS: Record<string, Record<string, string | number>> 
   fonts: {
     heading: "almarai",
     body: "tajawal",
+  },
+  loyalty: {
+    tiers: [
+      { min: 0, discount: 0 },
+      { min: 1000, discount: 5 },
+      { min: 3000, discount: 10 },
+    ],
   },
 };

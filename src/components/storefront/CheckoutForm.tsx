@@ -33,7 +33,29 @@ export function CheckoutForm() {
   const router = useRouter();
   const { items, getCartTotal, clearCart } = useCart();
   const total = getCartTotal();
-  const { deliveryFee } = useDeliveryFee(total);
+  const [loyalty, setLoyalty] = useState<{ totalSpent: number; percent: number } | null>(null);
+  const loyaltyDiscount = loyalty && loyalty.percent > 0
+    ? Math.round(((total * loyalty.percent) / 100) * 100) / 100
+    : 0;
+  const discountedTotal = Math.round((total - loyaltyDiscount) * 100) / 100;
+  const { deliveryFee } = useDeliveryFee(discountedTotal);
+
+  const fetchLoyalty = useCallback(async (phone: string) => {
+    const digits = phone.replace(/[\s-]/g, "");
+    if (!/^[0-9]{10,11}$/.test(digits)) {
+      setLoyalty(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(digits)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLoyalty({ totalSpent: Number(data.totalSpent) || 0, percent: Number(data.percent) || 0 });
+      }
+    } catch {
+      // ignore loyalty lookup failures
+    }
+  }, []);
 
   const [form, setForm] = useState<FormData>({
     name: "",
@@ -154,8 +176,21 @@ export function CheckoutForm() {
         type="tel"
         value={form.phone}
         onChange={(e) => updateField("phone", e.target.value)}
+        onBlur={(e) => fetchLoyalty(e.target.value)}
         error={errors.phone}
       />
+
+      {loyalty && loyalty.percent > 0 && (
+        <div className="p-4 rounded-lg bg-brand-success/10 border border-brand-success/20 text-sm">
+          <p className="font-bold text-brand-success">
+            🎉 خصم ولاء {loyalty.percent}% على طلبك
+          </p>
+          <p className="text-brand-text-secondary mt-1">
+            رصيد مشترياتك: {loyalty.totalSpent.toLocaleString("ar-EG")} جنيه — سيُخصم{" "}
+            {loyaltyDiscount.toLocaleString("ar-EG")} جنيه تلقائياً
+          </p>
+        </div>
+      )}
 
       <Input
         label="البريد الإلكتروني (اختياري)"

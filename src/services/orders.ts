@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getLoyaltyTiers, resolveLoyaltyDiscount } from "@/services/loyalty";
 
 function bad(message: string): Error {
   return Object.assign(new Error(message), { status: 400 });
@@ -70,8 +71,6 @@ export async function createOrder(data: any) {
   subtotal = Math.round(subtotal * 100) / 100;
 
   const { threshold, fee } = await getDeliverySettings();
-  const deliveryFee = subtotal <= 0 ? 0 : subtotal >= threshold ? 0 : fee;
-  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   const phone: string = data.phone;
   let customer = await prisma.customer.findFirst({ where: { phone } });
@@ -98,6 +97,19 @@ export async function createOrder(data: any) {
       },
     });
   }
+
+  const priorAgg = await prisma.order.aggregate({
+    where: { customerId: customer.id, status: { not: "cancelled" } },
+    _sum: { total: true },
+  });
+  const priorSpent = priorAgg._sum.total || 0;
+  const tiers = await getLoyaltyTiers();
+  const loyaltyPercent = resolveLoyaltyDiscount(tiers, priorSpent);
+  const loyaltyDiscount = Math.round(((subtotal * loyaltyPercent) / 100) * 100) / 100;
+  const discountedSubtotal = Math.round((subtotal - loyaltyDiscount) * 100) / 100;
+
+  const deliveryFee = discountedSubtotal <= 0 ? 0 : discountedSubtotal >= threshold ? 0 : fee;
+  const total = Math.round((discountedSubtotal + deliveryFee) * 100) / 100;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -128,6 +140,8 @@ export async function createOrder(data: any) {
             customerId: customer.id,
             status: "new",
             subtotal,
+            loyaltyPercent,
+            loyaltyDiscount,
             deliveryFee,
             total,
             phone,

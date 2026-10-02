@@ -10,6 +10,7 @@ import {
 import { CONTENT_DEFAULTS } from "@/lib/site-content";
 import { getSiteContent } from "@/services/site-content";
 import { getActivePromotions } from "@/services/promotions";
+import { Reveal } from "@/components/shared/Reveal";
 import type { Category, Product } from "@/types";
 
 export default async function HomePage() {
@@ -72,19 +73,20 @@ export default async function HomePage() {
       {/* Offers */}
       {promotions.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
-          <div className="text-center mb-8">
+          <Reveal className="text-center mb-8">
             <h2 className="text-3xl font-bold text-brand-primary font-heading">
               عروضنا
             </h2>
             <p className="mt-2 text-brand-text-secondary">
               أقوى الخصومات والعروض لفترة محدودة
             </p>
-          </div>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {promotions.map((promo) => (
-              <div
+            {promotions.map((promo, i) => (
+              <Reveal
                 key={promo.id}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-primary via-brand-primary-light to-brand-accent text-white shadow-md"
+                delay={Math.min(i, 3) * 90}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-primary via-brand-primary-light to-brand-accent text-white shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex flex-col sm:flex-row items-stretch">
                   <div className="flex-1 p-6 sm:p-8">
@@ -123,7 +125,7 @@ export default async function HomePage() {
                     </div>
                   )}
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -132,17 +134,19 @@ export default async function HomePage() {
       {/* Categories */}
       {categories.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center mb-10">
+          <Reveal className="text-center mb-10">
             <h2 className="text-3xl font-bold text-brand-primary font-heading">
               {categoriesHome.section_title}
             </h2>
             <p className="mt-2 text-brand-text-secondary">
               {categoriesHome.section_subtitle}
             </p>
-          </div>
+          </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
+            {categories.map((category, i) => (
+              <Reveal key={category.id} delay={Math.min(i, 5) * 70}>
+                <CategoryCard category={category} />
+              </Reveal>
             ))}
           </div>
         </section>
@@ -152,17 +156,19 @@ export default async function HomePage() {
       {featuredProducts.length > 0 && (
         <section className="bg-brand-secondary/20 py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-10">
+            <Reveal className="text-center mb-10">
               <h2 className="text-3xl font-bold text-brand-primary font-heading">
                 {featured.section_title}
               </h2>
               <p className="mt-2 text-brand-text-secondary">
                 {featured.section_subtitle}
               </p>
-            </div>
+            </Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {featuredProducts.map((product, i) => (
+                <Reveal key={product.id} delay={Math.min(i, 3) * 80}>
+                  <ProductCard product={product} />
+                </Reveal>
               ))}
             </div>
           </div>
@@ -171,11 +177,12 @@ export default async function HomePage() {
 
       {/* Customization Promo */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-primary via-brand-primary-light to-brand-accent p-8 sm:p-12 text-white">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-brand-accent/20 blur-3xl" />
-          </div>
+        <Reveal>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-primary via-brand-primary-light to-brand-accent p-8 sm:p-12 text-white">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-white/10 blur-3xl animate-float-slow" />
+              <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-brand-accent/20 blur-3xl animate-float-slower" />
+            </div>
           <div className="relative flex flex-col lg:flex-row items-center gap-10">
             <div className="flex-1 text-center lg:text-right">
               <h2 className="text-3xl sm:text-4xl font-bold font-heading leading-tight">
@@ -215,14 +222,15 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Latest Products */}
       {latestProductsData.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex items-center justify-between mb-10">
+          <Reveal className="flex items-center justify-between mb-10">
             <div>
               <h2 className="text-3xl font-bold text-brand-primary font-heading">
                 {latest.section_title}
@@ -237,10 +245,12 @@ export default async function HomePage() {
             >
               {latest.view_all_text}
             </Link>
-          </div>
+          </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {latestProductsData.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {latestProductsData.map((product, i) => (
+              <Reveal key={product.id} delay={Math.min(i, 3) * 80}>
+                <ProductCard product={product} />
+              </Reveal>
             ))}
           </div>
         </section>
@@ -249,16 +259,17 @@ export default async function HomePage() {
       {/* Why Knoz Store */}
       <section className="bg-brand-primary text-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl font-bold font-heading">
               {why.section_title}
             </h2>
             <p className="mt-2 text-white/70">
               {why.section_subtitle}
             </p>
-          </div>
+          </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <BenefitCard
+            <Reveal delay={0}>
+              <BenefitCard
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -268,7 +279,9 @@ export default async function HomePage() {
               title={why.benefit_1_title}
               description={why.benefit_1_desc}
             />
-            <BenefitCard
+            </Reveal>
+            <Reveal delay={90}>
+              <BenefitCard
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
@@ -277,7 +290,9 @@ export default async function HomePage() {
               title={why.benefit_2_title}
               description={why.benefit_2_desc}
             />
-            <BenefitCard
+            </Reveal>
+            <Reveal delay={180}>
+              <BenefitCard
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect width="18" height="18" x="3" y="3" rx="2" />
@@ -288,7 +303,9 @@ export default async function HomePage() {
               title={why.benefit_3_title}
               description={why.benefit_3_desc}
             />
-            <BenefitCard
+            </Reveal>
+            <Reveal delay={270}>
+              <BenefitCard
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -297,6 +314,7 @@ export default async function HomePage() {
               title={why.benefit_4_title}
               description={why.benefit_4_desc}
             />
+            </Reveal>
           </div>
         </div>
       </section>

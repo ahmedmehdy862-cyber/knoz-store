@@ -33,6 +33,30 @@ function SettingsClient({ initialData }: SettingsClientProps) {
     }));
   };
 
+  const setTiers = (tiers: Array<{ min: number; discount: number }>) => {
+    setFormData((prev) => ({
+      ...prev,
+      loyalty: { ...(prev.loyalty || {}), tiers },
+    }));
+  };
+
+  const updateTier = (index: number, min: number, discount: number) => {
+    const tiers = [...getTiers(formData.loyalty)];
+    tiers[index] = { min: Math.max(0, min), discount };
+    setTiers(tiers);
+  };
+
+  const addTier = () => {
+    const tiers = [...getTiers(formData.loyalty)];
+    const last = tiers[tiers.length - 1] || { min: 0, discount: 0 };
+    setTiers([...tiers, { min: last.min + 1000, discount: last.discount + 5 }]);
+  };
+
+  const removeTier = (index: number) => {
+    const tiers = getTiers(formData.loyalty).filter((_, i) => i !== index);
+    if (tiers.length > 0) setTiers(tiers);
+  };
+
   const handleSave = async () => {
     setLoading(true);
     setSuccess(false);
@@ -245,6 +269,59 @@ function SettingsClient({ initialData }: SettingsClientProps) {
         </div>
       </div>
 
+      <div className="bg-brand-surface rounded-xl border border-brand-border-light shadow-sm p-5">
+        <h3 className="font-bold text-brand-primary font-heading mb-1">
+          الولاء والخصومات
+        </h3>
+        <p className="text-sm text-brand-text-secondary mb-4">
+          كل شريحة رصيد مشتريات تمنح نسبة خصم تلقائية على الطلبات الجديدة
+        </p>
+
+        <div className="space-y-3">
+          {(getTiers(formData.loyalty).length === 0 ? [{ min: 0, discount: 0 }] : getTiers(formData.loyalty)).map((tier, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="flex-1">
+                <Input
+                  label={i === 0 ? "الرصيد من (جنيه)" : ""}
+                  type="number"
+                  value={String(tier.min)}
+                  onChange={(e) => updateTier(i, Number(e.target.value) || 0, tier.discount)}
+                  min="0"
+                />
+              </div>
+              <div className="flex-1">
+                <Input
+                  label={i === 0 ? "الخصم % " : ""}
+                  type="number"
+                  value={String(tier.discount)}
+                  onChange={(e) =>
+                    updateTier(i, tier.min, Math.min(90, Math.max(0, Number(e.target.value) || 0)))
+                  }
+                  min="0"
+                  max="90"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeTier(i)}
+                disabled={getTiers(formData.loyalty).length <= 1}
+                className="mt-1 p-2 rounded-lg text-brand-text-muted hover:text-brand-error hover:bg-brand-error/10 transition-colors disabled:opacity-30 cursor-pointer"
+                aria-label="حذف الشريحة"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addTier}
+            className="text-sm font-medium text-brand-accent hover:text-brand-accent-dark transition-colors cursor-pointer"
+          >
+            + إضافة شريحة
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center gap-3">
         <Button onClick={handleSave} loading={loading}>
           حفظ جميع الإعدادات
@@ -261,6 +338,21 @@ function SettingsClient({ initialData }: SettingsClientProps) {
 
 function getSelectedFont(id: string) {
   return FONT_OPTIONS.find((f) => f.id === id) || FONT_OPTIONS[0];
+}
+
+function getTiers(loyalty: unknown): Array<{ min: number; discount: number }> {
+  const raw =
+    loyalty && typeof loyalty === "object"
+      ? (loyalty as Record<string, unknown>).tiers
+      : undefined;
+  if (!Array.isArray(raw)) return [{ min: 0, discount: 0 }];
+  return raw.map((t) => ({
+    min: Math.max(0, Number((t as Record<string, unknown>)?.min) || 0),
+    discount: Math.min(
+      90,
+      Math.max(0, Number((t as Record<string, unknown>)?.discount) || 0)
+    ),
+  }));
 }
 
 export { SettingsClient };

@@ -165,6 +165,16 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <span className="text-brand-text-secondary">المجموع الفرعي</span>
                 <span className="text-brand-text">{formatPrice(Number(order.subtotal))}</span>
               </div>
+              {Number(order.loyaltyDiscount) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-brand-success">
+                    خصم الولاء ({Number(order.loyaltyPercent)}%)
+                  </span>
+                  <span className="text-brand-success">
+                    - {formatPrice(Number(order.loyaltyDiscount))}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-brand-text-secondary">رسوم التوصيل</span>
                 <span className="text-brand-text">{formatPrice(Number(order.deliveryFee))}</span>

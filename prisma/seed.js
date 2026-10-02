@@ -286,6 +286,13 @@ async function main() {
       heading: "almarai",
       body: "tajawal",
     },
+    loyalty: {
+      tiers: [
+        { min: 0, discount: 0 },
+        { min: 1000, discount: 5 },
+        { min: 3000, discount: 10 },
+      ],
+    },
   };
 
   for (const [key, value] of Object.entries(settingData)) {

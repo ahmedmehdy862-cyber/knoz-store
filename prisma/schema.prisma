@@ -146,8 +146,10 @@ model Order {
   customerId   String?     @map("customer_id")
   status       String      @default("new")
   subtotal     Float
-  deliveryFee  Float       @default(0) @map("delivery_fee")
+  deliveryFee  Float   @default(0) @map("delivery_fee")
   total        Float
+  loyaltyPercent Int   @default(0) @map("loyalty_percent")
+  loyaltyDiscount Float @default(0) @map("loyalty_discount")
   phone        String
   email        String?
   governorate  String?

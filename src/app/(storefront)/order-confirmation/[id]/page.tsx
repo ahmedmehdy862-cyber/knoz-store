@@ -123,6 +123,16 @@ export default async function OrderConfirmationPage({
             <span className="text-brand-text-secondary">المجموع الفرعي</span>
             <span className="font-medium">{formatPrice(order.subtotal)}</span>
           </div>
+          {Number(order.loyaltyDiscount) > 0 && (
+            <div className="flex justify-between">
+              <span className="text-brand-success">
+                خصم الولاء ({Number(order.loyaltyPercent)}%)
+              </span>
+              <span className="font-medium text-brand-success">
+                - {formatPrice(Number(order.loyaltyDiscount))}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-brand-text-secondary">رسوم التوصيل</span>
             <span className="font-medium">
