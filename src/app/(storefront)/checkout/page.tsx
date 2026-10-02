@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
+import { useDeliveryFee } from "@/hooks/useDeliveryFee";
 import { formatPrice } from "@/lib/utils";
 import { CheckoutForm } from "@/components/storefront/CheckoutForm";
 import { Breadcrumbs } from "@/components/storefront/Breadcrumbs";
@@ -10,7 +11,7 @@ import { Breadcrumbs } from "@/components/storefront/Breadcrumbs";
 export default function CheckoutPage() {
   const { items, getCartTotal } = useCart();
   const total = getCartTotal();
-  const deliveryFee = total > 0 ? 50 : 0;
+  const { deliveryFee, isFree } = useDeliveryFee(total);
   const grandTotal = total + deliveryFee;
 
   if (items.length === 0) {
@@ -134,7 +135,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-brand-text-secondary">رسوم التوصيل</span>
-                <span className="font-medium">{formatPrice(deliveryFee)}</span>
+                <span className="font-medium">{isFree ? "مجاني" : formatPrice(deliveryFee)}</span>
               </div>
               <div className="border-t border-brand-border-light pt-2 flex justify-between">
                 <span className="font-bold text-brand-primary">الإجمالي</span>

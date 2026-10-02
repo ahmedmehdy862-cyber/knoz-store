@@ -50,8 +50,11 @@ export async function POST(request: Request) {
 
     const order = await createOrder({ ...body, phone });
     return NextResponse.json(order, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Order creation failed:", error);
+    if (error?.status === 400 && typeof error.message === "string") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json(
       { error: "حدث خطأ أثناء إنشاء الطلب" },
       { status: 500 }

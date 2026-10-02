@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/useCart";
+import { useDeliveryFee } from "@/hooks/useDeliveryFee";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import type { CartItem } from "@/types";
@@ -16,7 +17,7 @@ export function CartContents() {
   const [clearing, setClearing] = useState(false);
 
   const total = getCartTotal();
-  const deliveryFee = total > 0 ? 50 : 0;
+  const { deliveryFee, threshold, isFree } = useDeliveryFee(total);
   const grandTotal = total + deliveryFee;
 
   const handleClear = useCallback(() => {
@@ -102,9 +103,14 @@ export function CartContents() {
             <div className="flex justify-between">
               <span className="text-brand-text-secondary">رسوم التوصيل</span>
               <span className="font-medium text-brand-text">
-                {formatPrice(deliveryFee)}
+                {isFree ? "مجاني" : formatPrice(deliveryFee)}
               </span>
             </div>
+            {!isFree && total > 0 && (
+              <p className="text-xs text-brand-text-muted">
+                التوصيل مجاني للطلبات فوق {formatPrice(threshold)}
+              </p>
+            )}
             <div className="border-t border-brand-border-light pt-3 flex justify-between">
               <span className="font-bold text-brand-primary">الإجمالي</span>
               <span className="font-bold text-brand-primary text-lg">

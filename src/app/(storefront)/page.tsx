@@ -26,7 +26,7 @@ export default async function HomePage() {
       getServerFeaturedProducts(),
     ]);
   } catch {
-    // Services may fail if Supabase is not configured
+    // ignore catalog errors, render page with empty lists
   }
 
   try {

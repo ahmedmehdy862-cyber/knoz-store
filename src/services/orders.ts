@@ -1,118 +1,164 @@
 import { prisma } from "@/lib/prisma";
 
-export async function createOrder(data: any) {
-  const lastOrder = await prisma.order.findFirst({
-    orderBy: { createdAt: "desc" },
-  });
-
-  const lastNumber = lastOrder
-    ? parseInt(lastOrder.orderNumber.replace("KZ-", ""))
-    : 0;
-  const orderNumber = `KZ-${String(lastNumber + 1).padStart(4, "0")}`;
-
-  const customer = await prisma.customer.create({
-    data: {
-      name: data.customer_name,
-      phone: data.phone,
-      email: data.email,
-      governorate: data.governorate,
-      area: data.area,
-      address: data.address,
-    },
-  });
-
-  return prisma.order.create({
-    data: {
-      orderNumber,
-      customerId: customer.id,
-      status: "new",
-      subtotal: data.subtotal,
-      deliveryFee: data.deliveryFee,
-      total: data.total,
-      phone: data.phone,
-      email: data.email,
-      governorate: data.governorate,
-      area: data.area,
-      address: data.address,
-      notes: data.notes,
-      items: {
-        create: data.items.map((item: any) => ({
-          productId: item.product_id || item.productId,
-          productName: item.product_name || item.productName,
-          productPrice: item.product_price || item.productPrice,
-          quantity: item.quantity,
-          customizationName: item.customization_name || item.customizationName,
-          customizationTheme: item.customization_theme || item.customizationTheme,
-          customizationSticker: item.customization_sticker || item.customizationSticker,
-          customizationNotes: item.customization_notes || item.customizationNotes,
-          customizationImageUrl: item.customization_image_url || item.customizationImageUrl,
-        })),
-      },
-    },
-    include: { items: true, customer: true },
-  });
+function bad(message: string): Error {
+  return Object.assign(new Error(message), { status: 400 });
 }
 
-export async function getOrders(filters: {
-  page?: number;
-  limit?: number;
-  status?: string;
-  search?: string;
-} = {}) {
-  const { page = 1, limit = 20, status, search } = filters;
+interface NormalizedItem {
+  productId: string | null;
+  productName: string;
+  productPrice: number;
+  quantity: number;
+  customizationName?: string | null;
+  customizationTheme?: string | null;
+  customizationSticker?: string | null;
+  customizationNotes?: string | null;
+  customizationImageUrl?: string | null;
+}
 
-  const where: any = {};
-  if (status) where.status = status;
-  if (search) {
-    where.OR = [
-      { orderNumber: { contains: search } },
-      { phone: { contains: search } },
-      { customer: { name: { contains: search } } },
-    ];
+export async function getDeliverySettings(): Promise<{ threshold: number; fee: number }> {
+  try {
+    const row = await prisma.setting.findUnique({ where: { key: "delivery" } });
+    const parsed = row ? (JSON.parse(row.value) as Record<string, unknown>) : {};
+    const threshold = Number(parsed.free_delivery_threshold);
+    const fee = Number(parsed.default_deliveryFee);
+    return {
+      threshold: Number.isFinite(threshold) && threshold >= 0 ? threshold : 500,
+      fee: Number.isFinite(fee) && fee >= 0 ? fee : 50,
+    };
+  } catch {
+    return { threshold: 500, fee: 50 };
+  }
+}
+
+export async function createOrder(data: any) {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  if (rawItems.length === 0) throw bad("السلة فارغة");
+
+  const items: NormalizedItem[] = rawItems.map((item: any) => ({
+    productId: item.product_id || item.productId || null,
+    productName: item.product_name || item.productName || "منتج",
+    productPrice: Number(item.product_price ?? item.productPrice ?? 0),
+    quantity: item.quantity,
+    customizationName: item.customization_name || item.customizationName || null,
+    customizationTheme: item.customization_theme || item.customizationTheme || null,
+    customizationSticker: item.customization_sticker || item.customizationSticker || null,
+    customizationNotes: item.customization_notes || item.customizationNotes || null,
+    customizationImageUrl:
+      item.customization_image_url || item.customizationImageUrl || null,
+  }));
+
+  const ids = [...new Set(items.map((i) => i.productId).filter((id): id is string => !!id))];
+  const dbProducts = ids.length
+    ? await prisma.product.findMany({ where: { id: { in: ids } } })
+    : [];
+  const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+  let subtotal = 0;
+  for (const item of items) {
+    const dbProduct = item.productId ? productMap.get(item.productId) : undefined;
+    if (item.productId && !dbProduct) throw bad(`المنتج "${item.productName}" غير موجود`);
+    if (dbProduct && !dbProduct.isActive) throw bad(`المنتج "${item.productName}" غير متاح حالياً`);
+    if (dbProduct) {
+      item.productPrice = dbProduct.price;
+      if (dbProduct.stock < item.quantity) {
+        throw bad(`الكمية المتاحة من "${item.productName}" غير كافية`);
+      }
+    }
+    subtotal += item.productPrice * item.quantity;
+  }
+  subtotal = Math.round(subtotal * 100) / 100;
+
+  const { threshold, fee } = await getDeliverySettings();
+  const deliveryFee = subtotal <= 0 ? 0 : subtotal >= threshold ? 0 : fee;
+  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
+
+  const phone: string = data.phone;
+  let customer = await prisma.customer.findFirst({ where: { phone } });
+  if (customer) {
+    customer = await prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        name: data.customer_name || customer.name,
+        email: data.email || customer.email,
+        governorate: data.governorate ?? customer.governorate,
+        area: data.area ?? customer.area,
+        address: data.address ?? customer.address,
+      },
+    });
+  } else {
+    customer = await prisma.customer.create({
+      data: {
+        name: data.customer_name,
+        phone,
+        email: data.email || null,
+        governorate: data.governorate || null,
+        area: data.area || null,
+        address: data.address || null,
+      },
+    });
   }
 
-  const skip = (page - 1) * limit;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const lastOrder = await prisma.order.findFirst({
+        orderBy: { createdAt: "desc" },
+        select: { orderNumber: true },
+      });
+      const lastNumber = lastOrder
+        ? parseInt(lastOrder.orderNumber.replace("KZ-", "")) || 0
+        : 0;
+      const orderNumber = `KZ-${String(lastNumber + 1).padStart(4, "0")}`;
 
-  const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where,
-      include: {
-        customer: true,
-        items: true,
-      },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
-    }),
-    prisma.order.count({ where }),
-  ]);
+      return await prisma.$transaction(async (tx) => {
+        for (const item of items) {
+          if (!item.productId) continue;
+          const updated = await tx.product.updateMany({
+            where: { id: item.productId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (updated.count === 0) {
+            throw bad(`الكمية المتاحة من "${item.productName}" غير كافية`);
+          }
+        }
 
-  return {
-    data: orders,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  };
-}
+        return tx.order.create({
+          data: {
+            orderNumber,
+            customerId: customer.id,
+            status: "new",
+            subtotal,
+            deliveryFee,
+            total,
+            phone,
+            email: data.email || null,
+            governorate: data.governorate || null,
+            area: data.area || null,
+            address: data.address || null,
+            notes: data.notes || null,
+            items: {
+              create: items.map((item) => ({
+                productId: item.productId,
+                productName: item.productName,
+                productPrice: item.productPrice,
+                quantity: item.quantity,
+                customizationName: item.customizationName,
+                customizationTheme: item.customizationTheme,
+                customizationSticker: item.customizationSticker,
+                customizationNotes: item.customizationNotes,
+                customizationImageUrl: item.customizationImageUrl,
+              })),
+            },
+          },
+          include: { items: true, customer: true },
+        });
+      });
+    } catch (error: any) {
+      if (error?.status === 400) throw error;
+      if (error?.code === "P2002" && attempt < 2) continue;
+      throw error;
+    }
+  }
 
-export async function getOrderById(id: string) {
-  return prisma.order.findUnique({
-    where: { id },
-    include: { customer: true, items: true },
-  });
-}
-
-export async function getOrdersByCustomerId(customerId: string) {
-  return prisma.order.findMany({
-    where: { customerId },
-    include: { items: true },
-    orderBy: { createdAt: "desc" },
-  });
-}
-
-export async function updateOrderStatus(id: string, status: string) {
-  return prisma.order.update({
-    where: { id },
-    data: { status },
-  });
+  throw new Error("Order creation failed");
 }

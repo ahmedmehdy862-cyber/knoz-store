@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import type { Product } from "@/types";
 
 interface UseSearchOptions {
@@ -34,61 +33,12 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       setError(null);
 
       try {
-        const supabase = createClient();
-        const pattern = `%${trimmed}%`;
-
-        const { data, error: searchError } = await supabase
-          .from("products")
-          .select("*, category:categories(*), images:product_images(*)")
-          .eq("isActive", true)
-          .or(`name.ilike.${pattern},description.ilike.${pattern}`)
-          .limit(limit);
-
-        if (searchError) throw searchError;
-
-        const matchedCategoryIds = new Set<string>();
-
-        const { data: matchingCategories } = await supabase
-          .from("categories")
-          .select("id")
-          .ilike("name", pattern);
-
-        if (matchingCategories) {
-          matchingCategories.forEach((c) => matchedCategoryIds.add(c.id));
-        }
-
-        const { data: matchingTags } = await supabase
-          .from("products")
-          .select("id")
-          .ilike("badge", pattern)
-          .eq("isActive", true);
-
-        const tagIds = new Set<string>();
-        if (matchingTags) {
-          matchingTags.forEach((t) => tagIds.add(t.id));
-        }
-
-        const allIds = new Set<string>();
-        if (data) data.forEach((p) => allIds.add(p.id));
-        matchedCategoryIds.forEach((id) => allIds.add(id));
-        tagIds.forEach((id) => allIds.add(id));
-
-        if (allIds.size === 0) {
-          setResults([]);
-          return;
-        }
-
-        const { data: finalData, error: finalError } = await supabase
-          .from("products")
-          .select("*, category:categories(*), images:product_images(*)")
-          .in("id", Array.from(allIds))
-          .eq("isActive", true)
-          .order("name")
-          .limit(limit);
-
-        if (finalError) throw finalError;
-
-        setResults((finalData as Product[]) ?? []);
+        const response = await fetch(
+          `/api/search?q=${encodeURIComponent(trimmed)}&limit=${limit}`
+        );
+        if (!response.ok) throw new Error("فشل البحث");
+        const data = await response.json();
+        setResults((data as Product[]) ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Search failed");
         setResults([]);

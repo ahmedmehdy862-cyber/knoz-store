@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { useCart } from "@/hooks/useCart";
+import { useDeliveryFee } from "@/hooks/useDeliveryFee";
 import { GOVERNORATES } from "@/lib/utils";
 
 
@@ -32,7 +33,7 @@ export function CheckoutForm() {
   const router = useRouter();
   const { items, getCartTotal, clearCart } = useCart();
   const total = getCartTotal();
-  const deliveryFee = total > 0 ? 50 : 0;
+  const { deliveryFee } = useDeliveryFee(total);
 
   const [form, setForm] = useState<FormData>({
     name: "",
