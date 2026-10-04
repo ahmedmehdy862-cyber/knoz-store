@@ -43,18 +43,20 @@ export function normalizePhone(phone: string): string {
 
 export async function findCustomerByPhone(phone: string) {
   const digits = phone.replace(/[^0-9]/g, "");
-  const exact = await prisma.customer.findFirst({ where: { phone } });
-  if (exact) return exact;
   if (digits.length < 7) return null;
   const normalized = normalizePhone(phone);
-  if (normalized.length < 7) return null;
   const tail = normalized.slice(-8);
   const candidates = await prisma.customer.findMany({
-    where: { phone: { contains: tail } },
+    where: { OR: [{ phone }, { phone: { contains: tail } }] },
+    include: { _count: { select: { orders: true } } },
   });
-  return (
-    candidates.find((c) => normalizePhone(c.phone) === normalized) || null
+  const matched = candidates.filter(
+    (c) => c.phone === phone || normalizePhone(c.phone) === normalized
   );
+  if (matched.length === 0) return null;
+  matched.sort((a, b) => b._count.orders - a._count.orders);
+  const { _count, ...customer } = matched[0];
+  return customer;
 }
 
 export async function getCustomerLoyalty(
