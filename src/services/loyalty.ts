@@ -33,17 +33,27 @@ export function resolveLoyaltyDiscount(tiers: LoyaltyTier[], totalSpent: number)
   return percent;
 }
 
+export function normalizePhone(phone: string): string {
+  let digits = phone.replace(/[^0-9]/g, "");
+  if (digits.startsWith("0020")) digits = digits.slice(4);
+  else if (digits.startsWith("20") && digits.length > 11) digits = digits.slice(2);
+  digits = digits.replace(/^0+/, "");
+  return digits;
+}
+
 export async function findCustomerByPhone(phone: string) {
   const digits = phone.replace(/[^0-9]/g, "");
   const exact = await prisma.customer.findFirst({ where: { phone } });
   if (exact) return exact;
   if (digits.length < 7) return null;
-  const tail = digits.slice(-9);
+  const normalized = normalizePhone(phone);
+  if (normalized.length < 7) return null;
+  const tail = normalized.slice(-8);
   const candidates = await prisma.customer.findMany({
     where: { phone: { contains: tail } },
   });
   return (
-    candidates.find((c) => c.phone.replace(/[^0-9]/g, "") === digits) || null
+    candidates.find((c) => normalizePhone(c.phone) === normalized) || null
   );
 }
 
