@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/storefront/Breadcrumbs";
 import { getSiteContent } from "@/services/site-content";
 import { CONTENT_DEFAULTS } from "@/lib/site-content";
+import { SITE_NAME, absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: `من نحن | ${SITE_NAME}`,
+  description: "تعرف على قصة كنوز ستور — متجر المنتجات المخصصة بطابع شخصي.",
+  alternates: { canonical: absoluteUrl("/about") },
+  openGraph: {
+    type: "website",
+    url: absoluteUrl("/about"),
+    title: `من نحن | ${SITE_NAME}`,
+    description: "تعرف على قصة كنوز ستور — متجر المنتجات المخصصة بطابع شخصي.",
+  },
+};
 
 export default async function AboutPage() {
   let content: Record<string, Record<string, unknown>> = {};

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Breadcrumbs } from "@/components/storefront/Breadcrumbs";
 import { ProductCard } from "@/components/storefront/ProductCard";
@@ -5,7 +6,28 @@ import { ShopFilters } from "@/components/storefront/ShopFilters";
 import { ShopPagination } from "@/components/storefront/ShopPagination";
 import { getServerCategories } from "@/services/server-categories";
 import { getServerProducts } from "@/services/server-products";
+import { SITE_NAME, absoluteUrl } from "@/lib/seo";
 import type { Category, Product } from "@/types";
+
+export const metadata: Metadata = {
+  title: `المتجر | ${SITE_NAME}`,
+  description:
+    "تصفح كل منتجات كنوز ستور: مجات مخصصة، استيكرز، ثيمات وهدايا بطابع شخصي. صمّم منتجك بتفاصيلك.",
+  alternates: { canonical: absoluteUrl("/shop") },
+  openGraph: {
+    type: "website",
+    url: absoluteUrl("/shop"),
+    title: `المتجر | ${SITE_NAME}`,
+    description:
+      "تصفح كل منتجات كنوز ستور: مجات مخصصة، استيكرز، ثيمات وهدايا بطابع شخصي.",
+  },
+  twitter: {
+    card: "summary",
+    title: `المتجر | ${SITE_NAME}`,
+    description:
+      "تصفح كل منتجات كنوز ستور: مجات مخصصة، استيكرز، ثيمات وهدايا بطابع شخصي.",
+  },
+};
 
 async function ShopContent({
   searchParams,

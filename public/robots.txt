@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /cart
+Disallow: /api/
 
-Sitemap: https://knozstore.com/sitemap.xml
+Sitemap: https://knoz-store.vercel.app/sitemap.xml

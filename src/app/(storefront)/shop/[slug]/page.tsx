@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/storefront/ProductGallery";
 import { AddToCartButton } from "@/components/storefront/AddToCartButton";
@@ -11,7 +12,59 @@ import {
 import { formatPrice } from "@/lib/utils";
 import { getDiscountPercent } from "@/lib/discount";
 import { ProductBadge } from "@/components/ui/Badge";
+import {
+  SITE_NAME,
+  CURRENCY,
+  OG_IMAGE,
+  absoluteUrl,
+  truncate,
+} from "@/lib/seo";
 import type { Product } from "@/types";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  let product: Product | null = null;
+  try {
+    product = await getServerProductBySlug(slug);
+  } catch {
+    // fall through to default
+  }
+  if (!product) {
+    return { title: `منتج | ${SITE_NAME}` };
+  }
+
+  const title = `${product.name} | ${SITE_NAME}`;
+  const description = truncate(
+    product.description || `${product.name} من ${SITE_NAME} - منتجات مخصصة بطابع شخصي.`
+  );
+  const httpImage = product.images?.find(
+    (img: any) => typeof img.url === "string" && img.url.startsWith("http")
+  )?.url;
+  const canonical = absoluteUrl(`/shop/${product.slug}`);
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      url: canonical,
+      title,
+      description,
+      images: httpImage ? [{ url: httpImage, alt: product.name }] : [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: httpImage ? [httpImage] : [OG_IMAGE],
+    },
+  };
+}
 
 export default async function ProductDetailsPage({
   params,
@@ -29,6 +82,59 @@ export default async function ProductDetailsPage({
 
   if (!product) notFound();
 
+  const productUrl = absoluteUrl(`/shop/${product.slug}`);
+  const httpImages = (product.images || [])
+    .map((img: any) => img.url)
+    .filter(
+      (url: unknown) => typeof url === "string" && (url as string).startsWith("http")
+    );
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        name: product.name,
+        description: product.description || product.name,
+        url: productUrl,
+        image: httpImages.length > 0 ? httpImages : undefined,
+        brand: { "@type": "Brand", name: SITE_NAME },
+        offers: {
+          "@type": "Offer",
+          url: productUrl,
+          priceCurrency: CURRENCY,
+          price: product.price,
+          availability:
+            product.stock > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "الرئيسية",
+            item: absoluteUrl("/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "المتجر",
+            item: absoluteUrl("/shop"),
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: product.name,
+            item: productUrl,
+          },
+        ],
+      },
+    ],
+  };
+
   let relatedProducts: Product[] = [];
   try {
     if (product.categoryId) {
@@ -43,6 +149,10 @@ export default async function ProductDetailsPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <Breadcrumbs
         items={[
           { label: "المتجر", href: "/shop" },

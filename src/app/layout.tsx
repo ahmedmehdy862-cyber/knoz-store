@@ -10,6 +10,18 @@ import {
   DEFAULT_BODY_FONT,
 } from "@/lib/fonts";
 import { getSiteSettings } from "@/services/site-content";
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_LOCALE,
+  DEFAULT_TITLE,
+  DEFAULT_DESCRIPTION,
+  OG_IMAGE,
+  OG_IMAGE_WIDTH,
+  OG_IMAGE_HEIGHT,
+  GOOGLE_SITE_VERIFICATION,
+  absoluteUrl,
+} from "@/lib/seo";
 
 const tajawal = Tajawal({
   variable: "--font-tajawal",
@@ -26,38 +38,45 @@ const almarai = Almarai({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Knoz Store | كنوز ستور",
-    template: "%s | Knoz Store",
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: "كنوز ستور - منتجات مخصصة، مجات، استيكرز، ثيمات، هدايا بطابع شخصي. صمّم منتجك بتفاصيلك.",
+  description: DEFAULT_DESCRIPTION,
   keywords: ["كنوز ستور", "Knoz Store", "منتجات مخصصة", "مجات", "استيكرز", "هدايا", "تخصيص"],
-  metadataBase:
-    process.env.NEXT_PUBLIC_SITE_URL
-      ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-      : null,
+  authors: [{ name: SITE_NAME }],
+  alternates: {
+    canonical: absoluteUrl("/"),
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  verification: GOOGLE_SITE_VERIFICATION
+    ? { google: GOOGLE_SITE_VERIFICATION }
+    : undefined,
   openGraph: {
     type: "website",
-    locale: "ar_EG",
-    siteName: "Knoz Store",
-    title: "Knoz Store | كنوز ستور",
-    description:
-      "كنوز ستور - منتجات مخصصة، مجات، استيكرز، ثيمات، هدايا بطابع شخصي. صمّم منتجك بتفاصيلك.",
+    locale: SITE_LOCALE,
+    siteName: SITE_NAME,
+    url: absoluteUrl("/"),
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
     images: [
       {
-        url: "/logo/knoz-logo.png",
-        width: 640,
-        height: 640,
-        alt: "Knoz Store",
+        url: OG_IMAGE,
+        width: OG_IMAGE_WIDTH,
+        height: OG_IMAGE_HEIGHT,
+        alt: SITE_NAME,
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "Knoz Store | كنوز ستور",
-    description:
-      "كنوز ستور - منتجات مخصصة، مجات، استيكرز، ثيمات، هدايا بطابع شخصي. صمّم منتجك بتفاصيلك.",
-    images: ["/logo/knoz-logo.png"],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 
@@ -83,6 +102,40 @@ export default async function RootLayout({
     "--font-body": `'${body.family}', sans-serif`,
   } as CSSProperties;
 
+  const siteJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${absoluteUrl("/")}#organization`,
+        name: SITE_NAME,
+        url: absoluteUrl("/"),
+        logo: {
+          "@type": "ImageObject",
+          url: absoluteUrl(OG_IMAGE),
+          width: OG_IMAGE_WIDTH,
+          height: OG_IMAGE_HEIGHT,
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${absoluteUrl("/")}#website`,
+        url: absoluteUrl("/"),
+        name: SITE_NAME,
+        inLanguage: "ar",
+        publisher: { "@id": `${absoluteUrl("/")}#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${absoluteUrl("/shop")}?search={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <html
       lang="ar"
@@ -91,6 +144,10 @@ export default async function RootLayout({
       className={`${tajawal.variable} ${almarai.variable} h-full`}
     >
       <body className="min-h-full flex flex-col antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

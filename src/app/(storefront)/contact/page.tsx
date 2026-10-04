@@ -1,6 +1,21 @@
+import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/storefront/Breadcrumbs";
 import { getSiteContent, getSiteSettings } from "@/services/site-content";
 import { CONTENT_DEFAULTS } from "@/lib/site-content";
+import { SITE_NAME, absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: `تواصل معنا | ${SITE_NAME}`,
+  description:
+    "تواصل مع كنوز ستور عبر الهاتف أو الواتساب أو البريد الإلكتروني، وتابعنا على وسائل التواصل.",
+  alternates: { canonical: absoluteUrl("/contact") },
+  openGraph: {
+    type: "website",
+    url: absoluteUrl("/contact"),
+    title: `تواصل معنا | ${SITE_NAME}`,
+    description: "تواصل مع كنوز ستور عبر الهاتف أو الواتساب أو البريد الإلكتروني.",
+  },
+};
 
 export default async function ContactPage() {
   let content: Record<string, Record<string, unknown>> = {};

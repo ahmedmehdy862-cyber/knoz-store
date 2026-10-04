@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Hero } from "@/components/storefront/Hero";
 import { CategoryCard } from "@/components/storefront/CategoryCard";
@@ -11,7 +12,40 @@ import { CONTENT_DEFAULTS } from "@/lib/site-content";
 import { getSiteContent } from "@/services/site-content";
 import { getActivePromotions } from "@/services/promotions";
 import { Reveal } from "@/components/shared/Reveal";
+import {
+  DEFAULT_TITLE,
+  DEFAULT_DESCRIPTION,
+  OG_IMAGE,
+  OG_IMAGE_WIDTH,
+  OG_IMAGE_HEIGHT,
+  SITE_NAME,
+  SITE_LOCALE,
+  absoluteUrl,
+} from "@/lib/seo";
 import type { Category, Product } from "@/types";
+
+export const metadata: Metadata = {
+  title: DEFAULT_TITLE,
+  description: DEFAULT_DESCRIPTION,
+  alternates: { canonical: absoluteUrl("/") },
+  openGraph: {
+    type: "website",
+    locale: SITE_LOCALE,
+    siteName: SITE_NAME,
+    url: absoluteUrl("/"),
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [
+      { url: OG_IMAGE, width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT, alt: SITE_NAME },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+};
 
 export default async function HomePage() {
   let categories: Category[] = [];
