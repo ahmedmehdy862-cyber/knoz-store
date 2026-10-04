@@ -3,7 +3,7 @@ import { CartContents } from "@/components/storefront/CartContents";
 import { SITE_NAME, absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: `سلة التسوق | ${SITE_NAME}`,
+  title: "سلة التسوق",
   description: "راجع منتجات سلة التسوق وأتمم طلبك من كنوز ستور.",
   alternates: { canonical: absoluteUrl("/cart") },
   robots: { index: false, follow: false },

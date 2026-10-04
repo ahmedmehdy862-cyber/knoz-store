@@ -34,10 +34,11 @@ export async function generateMetadata({
     // fall through to default
   }
   if (!product) {
-    return { title: `منتج | ${SITE_NAME}` };
+    return { title: "منتج" };
   }
 
-  const title = `${product.name} | ${SITE_NAME}`;
+  const title = product.name;
+  const fullTitle = `${product.name} | ${SITE_NAME}`;
   const description = truncate(
     product.description || `${product.name} من ${SITE_NAME} - منتجات مخصصة بطابع شخصي.`
   );
@@ -53,13 +54,13 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       url: canonical,
-      title,
+      title: fullTitle,
       description,
       images: httpImage ? [{ url: httpImage, alt: product.name }] : [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: fullTitle,
       description,
       images: httpImage ? [httpImage] : [OG_IMAGE],
     },

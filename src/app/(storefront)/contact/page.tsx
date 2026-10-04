@@ -5,7 +5,7 @@ import { CONTENT_DEFAULTS } from "@/lib/site-content";
 import { SITE_NAME, absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: `تواصل معنا | ${SITE_NAME}`,
+  title: "تواصل معنا",
   description:
     "تواصل مع كنوز ستور عبر الهاتف أو الواتساب أو البريد الإلكتروني، وتابعنا على وسائل التواصل.",
   alternates: { canonical: absoluteUrl("/contact") },

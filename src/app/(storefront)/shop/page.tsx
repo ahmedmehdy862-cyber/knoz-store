@@ -10,7 +10,7 @@ import { SITE_NAME, absoluteUrl } from "@/lib/seo";
 import type { Category, Product } from "@/types";
 
 export const metadata: Metadata = {
-  title: `المتجر | ${SITE_NAME}`,
+  title: "المتجر",
   description:
     "تصفح كل منتجات كنوز ستور: مجات مخصصة، استيكرز، ثيمات وهدايا بطابع شخصي. صمّم منتجك بتفاصيلك.",
   alternates: { canonical: absoluteUrl("/shop") },

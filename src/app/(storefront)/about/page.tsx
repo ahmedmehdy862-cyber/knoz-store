@@ -5,7 +5,7 @@ import { CONTENT_DEFAULTS } from "@/lib/site-content";
 import { SITE_NAME, absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: `من نحن | ${SITE_NAME}`,
+  title: "من نحن",
   description: "تعرف على قصة كنوز ستور — متجر المنتجات المخصصة بطابع شخصي.",
   alternates: { canonical: absoluteUrl("/about") },
   openGraph: {

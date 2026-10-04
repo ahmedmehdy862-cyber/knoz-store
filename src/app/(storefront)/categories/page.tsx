@@ -7,7 +7,7 @@ import { SITE_NAME, absoluteUrl } from "@/lib/seo";
 import type { Category } from "@/types";
 
 export const metadata: Metadata = {
-  title: `التصنيفات | ${SITE_NAME}`,
+  title: "التصنيفات",
   description:
     "تصفح منتجات كنوز ستور حسب التصنيف: مجات مخصصة، استيكرز، ثيمات وهدايا بطابع شخصي.",
   alternates: { canonical: absoluteUrl("/categories") },
