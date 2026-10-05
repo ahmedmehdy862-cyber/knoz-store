@@ -44,15 +44,27 @@ export async function getServerProducts(filters: any = {}) {
 }
 
 export async function getServerProductBySlug(slug: string) {
-  return prisma.product.findUnique({
-    where: { slug, isActive: true },
-    include: {
-      category: true,
-      images: { orderBy: { sortOrder: "asc" } },
-      productThemes: { include: { theme: true } },
-      productStickers: { include: { sticker: true } },
-    },
-  });
+  const candidates = [slug];
+  try {
+    const decoded = decodeURIComponent(slug);
+    if (decoded !== slug) candidates.push(decoded);
+  } catch {
+    // not encoded, use raw slug
+  }
+
+  for (const candidate of candidates) {
+    const product = await prisma.product.findFirst({
+      where: { slug: candidate },
+      include: {
+        category: true,
+        images: { orderBy: { sortOrder: "asc" } },
+        productThemes: { include: { theme: true } },
+        productStickers: { include: { sticker: true } },
+      },
+    });
+    if (product) return product.isActive ? product : null;
+  }
+  return null;
 }
 
 export async function getServerFeaturedProducts() {
