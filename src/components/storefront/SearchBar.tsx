@@ -100,7 +100,7 @@ export function SearchBar({ className, onResultClick }: SearchBarProps) {
                   return (
                     <Link
                       key={product.id}
-                      href={`/product/${product.slug}`}
+                      href={`/shop/${product.slug}`}
                       onClick={handleResultClick}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-brand-secondary/30 transition-colors"
                     >

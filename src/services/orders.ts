@@ -149,6 +149,7 @@ export async function createOrder(data: any) {
             deliveryFee,
             total,
             phone,
+            phone2: typeof data.phone2 === "string" && data.phone2 ? data.phone2 : null,
             email: data.email || null,
             governorate: data.governorate || null,
             area: data.area || null,

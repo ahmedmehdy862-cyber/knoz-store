@@ -214,6 +214,9 @@ export default async function OrderDetailsPage({
             </p>
             <p>{order.address}</p>
             <p className="font-medium text-brand-text">الهاتف: {order.phone}</p>
+            {order.phone2 && (
+              <p className="font-medium text-brand-text">موبايل 2 (واتساب): {order.phone2}</p>
+            )}
             {order.email && <p>البريد: {order.email}</p>}
             {order.notes && (
               <p className="mt-2 text-brand-text-muted italic">

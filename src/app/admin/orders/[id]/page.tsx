@@ -208,6 +208,20 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <p className="text-brand-text-secondary">الهاتف</p>
                 <p className="font-medium text-brand-text" dir="ltr">{order.phone}</p>
               </div>
+              {order.phone2 && (
+                <div>
+                  <p className="text-brand-text-secondary">موبايل 2 (واتساب)</p>
+                  <p className="font-medium text-brand-text" dir="ltr">{order.phone2}</p>
+                  <a
+                    href={`https://wa.me/2${order.phone2.replace(/^0/, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-block text-xs font-medium text-brand-success hover:underline"
+                  >
+                    مراسلة واتساب
+                  </a>
+                </div>
+              )}
               {order.email && (
                 <div>
                   <p className="text-brand-text-secondary">البريد الإلكتروني</p>

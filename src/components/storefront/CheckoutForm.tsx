@@ -13,6 +13,7 @@ import { GOVERNORATES } from "@/lib/utils";
 interface FormData {
   name: string;
   phone: string;
+  phone2: string;
   email: string;
   governorate: string;
   area: string;
@@ -23,6 +24,7 @@ interface FormData {
 interface FormErrors {
   name?: string;
   phone?: string;
+  phone2?: string;
   email?: string;
   governorate?: string;
   area?: string;
@@ -60,6 +62,7 @@ export function CheckoutForm() {
   const [form, setForm] = useState<FormData>({
     name: "",
     phone: "",
+    phone2: "",
     email: "",
     governorate: "",
     area: "",
@@ -84,9 +87,14 @@ export function CheckoutForm() {
     const newErrors: FormErrors = {};
 
     if (!form.name.trim()) newErrors.name = "الاسم مطلوب";
-    if (!form.phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
+    if (!form.phone.trim()) newErrors.phone = "رقم الموبايل مطلوب";
     else if (!/^[0-9]{10,11}$/.test(form.phone.replace(/\s/g, "")))
-      newErrors.phone = "رقم الهاتف غير صحيح";
+      newErrors.phone = "رقم الموبايل غير صحيح";
+    if (!form.phone2.trim()) newErrors.phone2 = "رقم الموبايل الثاني مطلوب";
+    else if (!/^[0-9]{10,11}$/.test(form.phone2.replace(/\s/g, "")))
+      newErrors.phone2 = "رقم الموبايل الثاني غير صحيح";
+    else if (form.phone2.replace(/\s/g, "") === form.phone.replace(/\s/g, ""))
+      newErrors.phone2 = "يجب أن يكون الرقم الثاني مختلفاً عن الأول";
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       newErrors.email = "البريد الإلكتروني غير صحيح";
     if (!form.governorate) newErrors.governorate = "المحافظة مطلوبة";
@@ -125,6 +133,7 @@ export function CheckoutForm() {
           body: JSON.stringify({
             customer_name: form.name,
             phone: form.phone,
+            phone2: form.phone2,
             email: form.email,
             governorate: form.governorate,
             area: form.area,
@@ -171,7 +180,7 @@ export function CheckoutForm() {
       />
 
       <Input
-        label="رقم الهاتف"
+        label="رقم الموبايل الأول"
         placeholder="01XXXXXXXXX"
         type="tel"
         value={form.phone}
@@ -191,6 +200,20 @@ export function CheckoutForm() {
           </p>
         </div>
       )}
+
+      <div>
+        <Input
+          label="رقم الموبايل الثاني (واتساب)"
+          placeholder="01XXXXXXXXX"
+          type="tel"
+          value={form.phone2}
+          onChange={(e) => updateField("phone2", e.target.value)}
+          error={errors.phone2}
+        />
+        <p className="mt-1.5 text-xs text-brand-text-muted">
+          رقم احتياطي للتواصل واتساب في حال تعذر الوصول للرقم الأول
+        </p>
+      </div>
 
       <Input
         label="البريد الإلكتروني (اختياري)"

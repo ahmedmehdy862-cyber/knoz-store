@@ -151,6 +151,7 @@ model Order {
   loyaltyPercent Int   @default(0) @map("loyalty_percent")
   loyaltyDiscount Float @default(0) @map("loyalty_discount")
   phone        String
+  phone2       String?   @map("phone_2")
   email        String?
   governorate  String?
   area         String?

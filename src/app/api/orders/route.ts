@@ -28,6 +28,11 @@ export async function POST(request: Request) {
     const phone = typeof body.phone === "string" ? body.phone.replace(/[\s-]/g, "") : "";
     if (!/^[0-9]{10,11}$/.test(phone)) return bad("رقم الهاتف غير صحيح");
 
+    const phone2 =
+      typeof body.phone2 === "string" ? body.phone2.replace(/[\s-]/g, "") : "";
+    if (!/^[0-9]{10,11}$/.test(phone2)) return bad("رقم الموبايل الثاني غير صحيح");
+    if (phone2 === phone) return bad("يجب أن يكون الرقم الثاني مختلفاً عن الأول");
+
     if (!Array.isArray(body.items) || body.items.length === 0) {
       return bad("السلة فارغة");
     }
@@ -48,7 +53,7 @@ export async function POST(request: Request) {
       if (!Number.isFinite(value) || value < 0) return bad("إجمالي الطلب غير صحيح");
     }
 
-    const order = await createOrder({ ...body, phone });
+    const order = await createOrder({ ...body, phone, phone2 });
     return NextResponse.json(order, { status: 201 });
   } catch (error: any) {
     console.error("Order creation failed:", error);

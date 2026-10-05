@@ -158,6 +158,7 @@ export default async function OrderConfirmationPage({
             </p>
             <p>{order.address}</p>
             <p>الهاتف: {order.phone}</p>
+            {order.phone2 && <p>موبايل 2 (واتساب): {order.phone2}</p>}
             {order.email && <p>البريد: {order.email}</p>}
           </div>
         </div>

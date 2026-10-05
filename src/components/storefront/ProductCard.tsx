@@ -28,7 +28,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       )}
     >
       {/* Image */}
-      <Link href={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-brand-secondary-light">
+      <Link href={`/shop/${product.slug}`} className="relative block aspect-square overflow-hidden bg-brand-secondary-light">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -64,7 +64,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-4">
-        <Link href={`/product/${product.slug}`}>
+        <Link href={`/shop/${product.slug}`}>
           <h3 className="text-sm font-semibold text-brand-text line-clamp-2 hover:text-brand-accent transition-colors leading-relaxed">
             {product.name}
           </h3>
